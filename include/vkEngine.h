@@ -1,10 +1,11 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
+#include "vkCore.h"
 
 namespace vk
 {
 	class vkWindow;
+	class vkDevice;
 
 	class vkEngine
 	{
@@ -17,9 +18,15 @@ namespace vk
 
 	private:
 		vkWindow* m_pvkWindow;
+		vkDevice* m_pvkDevice;
 		bool m_bEngineRunning;
 
 		VkInstance m_vkInstance;
+
+		bool InitializeWindow();
+
 		bool InitializeVulkan();
+
+		bool InitializeDevice();
 	};
 }

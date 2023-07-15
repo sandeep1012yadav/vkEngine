@@ -136,6 +136,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\vkCamera.cpp" />
+    <ClCompile Include="src\vkDevice.cpp" />
     <ClCompile Include="src\vkEngine.cpp" />
     <ClCompile Include="src\vkLogger.cpp" />
     <ClCompile Include="src\vkWindow.cpp" />
@@ -143,6 +144,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\vkCamera.h" />
+    <ClInclude Include="include\vkCore.h" />
+    <ClInclude Include="include\vkDevice.h" />
     <ClInclude Include="include\vkEngine.h" />
     <ClInclude Include="include\vkLogger.h" />
     <ClInclude Include="include\vkWindow.h" />

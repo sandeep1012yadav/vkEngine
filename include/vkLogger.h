@@ -1,5 +1,5 @@
 #pragma once
-#include <string>
+#include "vkCore.h"
 #include <fstream>
 namespace vk
 {
@@ -8,11 +8,30 @@ namespace vk
 	public:
 		~vkLogger();
 		static vkLogger* GetInstance();
-		void Log(const std::string& _log);
+		template<typename... Param>
+		void Log(const Param&... param)
+		{
+			std::stringstream ss;
+			ToStringStream(ss, param...);
+			m_LogFileObject << ss.str() << std::endl;
+		}
 	private:
 		vkLogger();
-		static vkLogger* m_Instance;
+		static std::unique_ptr<vkLogger> m_Instance;
 		static std::ofstream m_LogFileObject;
+		
+		template<typename T>
+		void ToStringStream(std::stringstream& stream, const T& start)
+		{
+			stream << start;
+		}
+
+		template<typename T, typename... Targs>
+		void ToStringStream(std::stringstream& stream, const T& start, const Targs&... args)
+		{
+			stream << start;
+			ToStringStream(stream, args...);
+		}
 	};
 
 

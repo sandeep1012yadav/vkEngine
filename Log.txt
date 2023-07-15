@@ -14,3 +14,9 @@ VK_EXT_debug_utils
 VK_EXT_direct_mode_display
 VK_EXT_swapchain_colorspace
 VK_NV_external_memory_capabilities
+Picking physical device ...   
+Queue Families Count : 3
+With index 0   Queue Family has queues : 16
+>>>>>>>>>>>>>>>>>>>>>This queue is graphics queue
+With index 1   Queue Family has queues : 2
+With index 2   Queue Family has queues : 8

@@ -1,17 +1,31 @@
 #include "vkEngine.h"
-#include "vkWindow.h"
 #include <windows.h>
 #include "vkLogger.h"
+
+#include "vkWindow.h"
+#include "vkDevice.h"
 #include <vector>
 namespace vk
 {
 	vkEngine::vkEngine()
 	{
-		m_pvkWindow = new vkWindow(1600, 900, std::string("Vulkan Engine"));
+		m_pvkWindow = nullptr;
+		m_pvkDevice = nullptr;
+		if (InitializeWindow() == false)
+		{
+			vkLog->Log("Window Initialization Failed");
+		}
+		
 		if (InitializeVulkan() == false)
 		{
 			vkLog->Log("Vulkan Initialization Failed");
 		}
+
+		if (InitializeDevice() == false)
+		{
+			vkLog->Log("Device Initialization Failed");
+		}
+
 		m_bEngineRunning = false;
 	}
 
@@ -19,6 +33,12 @@ namespace vk
 	{
 		vkDestroyInstance(m_vkInstance, nullptr);
 		delete m_pvkWindow;
+	}
+
+	bool vkEngine::InitializeWindow()
+	{
+		m_pvkWindow = new vkWindow(1600, 900, std::string("Vulkan Engine"));
+		return true;
 	}
 
 	bool vkEngine::InitializeVulkan()
@@ -56,6 +76,12 @@ namespace vk
 		for (const auto& extension : extensions) {
 			vkLog->Log(extension.extensionName);
 		}
+		return true;
+	}
+
+	bool vkEngine::InitializeDevice()
+	{
+		m_pvkDevice = new vkDevice(m_vkInstance);
 		return true;
 	}
 
