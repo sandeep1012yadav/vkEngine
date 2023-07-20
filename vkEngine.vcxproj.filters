@@ -1,3 +1,49 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="vkApp.cpp" />
+    <ClCompile Include="src\vkCamera.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\vkDevice.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\vkLogger.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\vkEngine.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\vkWindow.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\vkCamera.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vkCore.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vkDevice.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vkEngine.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vkLogger.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vkWindow.h">
+      <Filter>include</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="include">
+      <UniqueIdentifier>{0697d51f-d004-4783-b1a4-e137ee59e6f8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{eb41ee84-92ed-44cf-a09d-f83b43efafca}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
 </Project>
