@@ -14,19 +14,23 @@ namespace vk
 		
 		bool StartEngine();
 		bool StopEngine();
+
+		const vkWindow* GetWindow() const;
+		const vkDevice* GetDevice() const;
+		const VkInstance& GetInstance() const;
+		const VkSurfaceKHR& GetSurface() const;
 		~vkEngine();
 
 	private:
 		vkWindow* m_pvkWindow;
 		vkDevice* m_pvkDevice;
+		VkInstance m_vkInstance;
+		VkSurfaceKHR m_vkSurface;
 		bool m_bEngineRunning;
 
-		VkInstance m_vkInstance;
-
 		bool InitializeWindow();
-
 		bool InitializeVulkan();
-
+		bool CreateSurface();
 		bool InitializeDevice();
 	};
 }

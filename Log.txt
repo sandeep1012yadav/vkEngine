@@ -1,22 +1,17 @@
-VK_KHR_device_group_creation
-VK_KHR_display
-VK_KHR_external_fence_capabilities
+VK_KHR_surface
+VK_KHR_win32_surface
 VK_KHR_external_memory_capabilities
 VK_KHR_external_semaphore_capabilities
-VK_KHR_get_display_properties2
+VK_KHR_external_fence_capabilities
 VK_KHR_get_physical_device_properties2
 VK_KHR_get_surface_capabilities2
-VK_KHR_surface
-VK_KHR_surface_protected_capabilities
-VK_KHR_win32_surface
+VK_KHR_device_group_creation
+VK_EXT_swapchain_colorspace
 VK_EXT_debug_report
 VK_EXT_debug_utils
-VK_EXT_direct_mode_display
-VK_EXT_swapchain_colorspace
-VK_NV_external_memory_capabilities
 Picking physical device ...   
-Queue Families Count : 3
-With index 0   Queue Family has queues : 16
+Queue Families Count : 1
+Queue Family with index : "0" has queues count : 1
 >>>>>>>>>>>>>>>>>>>>>This queue is graphics queue
-With index 1   Queue Family has queues : 2
-With index 2   Queue Family has queues : 8
+>>>>>>>>>>>>>>>>>>>>>This queue is present queue
+Physical device is capable of creating graphics and presenting Queues...

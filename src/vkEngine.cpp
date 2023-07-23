@@ -14,16 +14,25 @@ namespace vk
 		if (InitializeWindow() == false)
 		{
 			vkLog->Log("Window Initialization Failed");
+			return;
 		}
 		
 		if (InitializeVulkan() == false)
 		{
 			vkLog->Log("Vulkan Initialization Failed");
+			return;
+		}
+
+		if (CreateSurface() == false)
+		{
+			vkLog->Log("Creation Win32 Surface Failed");
+			return;
 		}
 
 		if (InitializeDevice() == false)
 		{
 			vkLog->Log("Device Initialization Failed");
+			return;
 		}
 
 		m_bEngineRunning = false;
@@ -35,9 +44,26 @@ namespace vk
 		delete m_pvkWindow;
 	}
 
+	const vkWindow* vkEngine::GetWindow() const
+	{
+		return m_pvkWindow;
+	}
+	const vkDevice* vkEngine::GetDevice() const
+	{
+		return m_pvkDevice;
+	}
+	const VkInstance& vkEngine::GetInstance() const
+	{
+		return m_vkInstance;
+	}
+	const VkSurfaceKHR& vkEngine::GetSurface() const
+	{
+		return m_vkSurface;
+	}
+
 	bool vkEngine::InitializeWindow()
 	{
-		m_pvkWindow = new vkWindow(1600, 900, std::string("Vulkan Engine"));
+		m_pvkWindow = new vkWindow(1600, 900, std::string("Vulkan Engine"), this);
 		return true;
 	}
 
@@ -79,9 +105,14 @@ namespace vk
 		return true;
 	}
 
+	bool vkEngine::CreateSurface()
+	{
+		return m_pvkWindow->CreateWin32Surface(&m_vkSurface);
+	}
+
 	bool vkEngine::InitializeDevice()
 	{
-		m_pvkDevice = new vkDevice(m_vkInstance);
+		m_pvkDevice = new vkDevice(m_vkInstance, this);
 		return true;
 	}
 
