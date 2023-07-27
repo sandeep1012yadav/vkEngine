@@ -14,6 +14,7 @@ namespace vk
 		int WindowShouldClose();
 		const char** GetRequiredInstanceExtensions(uint32_t* glfw_extension_count);
 		bool CreateWin32Surface(VkSurfaceKHR* surface);
+		void GetFrameBufferSize(int* width, int* height);
 	private:
 		GLFWwindow* m_pWindow;
 		const vkEngine* m_pvkEngine;

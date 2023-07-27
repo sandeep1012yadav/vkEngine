@@ -1,9 +1,10 @@
 #include "vkDevice.h"
 #include "vkLogger.h"
 #include "vkEngine.h"
+#include "vkWindow.h"
 namespace vk
 {
-	vkDevice::vkDevice(const VkInstance vkInstance, const vkEngine* pEngine)
+	vkDevice::vkDevice(const VkInstance vkInstance, vkEngine* pEngine)
 	{
 		m_vkPhysicalDevice = VK_NULL_HANDLE;
 		m_vkInstance = vkInstance;
@@ -18,6 +19,11 @@ namespace vk
 		if (!CreateLogicalDevice())
 		{
 			vkLog->Log("Not able to create logical device...");
+			return;
+		}
+		if (!CreateSwapChain())
+		{
+			vkLog->Log("Not able to create swapchain...");
 			return;
 		}
 	}
@@ -54,6 +60,17 @@ namespace vk
 		}
 
 		m_vkPhysicalDevice = physicalDeviceWithMaxScore;
+
+		// fetching available device extensions 
+		uint32_t deviceLevelExtensionCount = 0;
+		vkEnumerateDeviceExtensionProperties(m_vkPhysicalDevice, nullptr, &deviceLevelExtensionCount, nullptr);
+		m_vkAvailableDeviceLevelExtentions.resize(deviceLevelExtensionCount);
+		vkEnumerateDeviceExtensionProperties(m_vkPhysicalDevice, nullptr, &deviceLevelExtensionCount, m_vkAvailableDeviceLevelExtentions.data());
+
+		vkLog->Log("Supported device level extension properties :");
+		for (const auto& extension : m_vkAvailableDeviceLevelExtentions) {
+			vkLog->Log("	", extension.extensionName);
+		}
 	}
 
 	bool vkDevice::CheckDeviceExtensionSupport(const VkPhysicalDevice physicalDevice)
@@ -122,6 +139,18 @@ namespace vk
 		return false;
 	}
 
+	bool vkDevice::IsDeviceExtensionSupported(const std::string extension)
+	{
+		for (VkExtensionProperties ext : m_vkAvailableDeviceLevelExtentions)
+		{
+			if (!strcmp(ext.extensionName, extension.c_str()))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
 	bool vkDevice::CreateLogicalDevice()
 	{
 		vkGetPhysicalDeviceFeatures(m_vkPhysicalDevice, &m_vkPhysicalDeviceFeatures);
@@ -161,6 +190,115 @@ namespace vk
 			return false;
 		}
 
+		vkGetDeviceQueue(m_vkDevice, m_vkQueueFamilyIndices.graphicsFamilyIndex.value(), 0, &m_vkGraphicsQueue);
+		vkGetDeviceQueue(m_vkDevice, m_vkQueueFamilyIndices.presentFamilyIndex.value(), 0, &m_vkPresentQueue);
+
+		
+
+		return true;
+	}
+
+	vkDevice::SwapChainSupportDetails vkDevice::QuerySwapChainSupportDetails()
+	{
+		SwapChainSupportDetails details;
+		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_vkPhysicalDevice, m_pvkEngine->GetSurface(), &details.surfaceCapabilities);
+		uint32_t surfaceFormatCount = 0;
+		vkGetPhysicalDeviceSurfaceFormatsKHR(m_vkPhysicalDevice, m_pvkEngine->GetSurface(), &surfaceFormatCount, nullptr);
+		if (surfaceFormatCount != 0)
+		{
+			details.surfaceFormats.resize(surfaceFormatCount);
+			vkGetPhysicalDeviceSurfaceFormatsKHR(m_vkPhysicalDevice, m_pvkEngine->GetSurface(), &surfaceFormatCount, details.surfaceFormats.data());
+		}
+		uint32_t presentModeCount = 0;
+		vkGetPhysicalDeviceSurfacePresentModesKHR(m_vkPhysicalDevice, m_pvkEngine->GetSurface(), &presentModeCount, nullptr);
+		if (presentModeCount != 0)
+		{
+			details.presentMode.resize(presentModeCount);
+			vkGetPhysicalDeviceSurfacePresentModesKHR(m_vkPhysicalDevice, m_pvkEngine->GetSurface(), &presentModeCount, details.presentMode.data());
+		}
+		return details;
+	}
+
+	bool vkDevice::CreateSwapChain()
+	{
+		if (!IsDeviceExtensionSupported(std::string("VK_KHR_swapchain")))
+		{
+			vkLog->Log("Swap chain device extension is not supported on the device...");
+			return false;
+		}
+		vkLog->Log("Swap chain device extension is supported on the device...");
+
+		m_vkSwapChainSupportDetails = QuerySwapChainSupportDetails();
+		if (m_vkSwapChainSupportDetails.presentMode.empty() || m_vkSwapChainSupportDetails.surfaceFormats.empty())
+		{
+			vkLog->Log("Swap chain details are not sufficient to create swapchain...");
+		}
+
+		VkExtent2D swapChainExtent;
+		if (m_vkSwapChainSupportDetails.surfaceCapabilities.currentExtent.width != std::numeric_limits<uint32_t>::max())
+		{
+			swapChainExtent = m_vkSwapChainSupportDetails.surfaceCapabilities.currentExtent;
+		}
+		else
+		{
+			int width, height;
+			m_pvkEngine->GetWindow()->GetFrameBufferSize(&width, &height);
+			swapChainExtent.height = static_cast<uint32_t>(height);
+			swapChainExtent.width = static_cast<uint32_t>(width);
+
+			swapChainExtent.height = std::clamp(swapChainExtent.height, m_vkSwapChainSupportDetails.surfaceCapabilities.minImageExtent.height,
+				m_vkSwapChainSupportDetails.surfaceCapabilities.maxImageExtent.height);
+			swapChainExtent.width = std::clamp(swapChainExtent.width, m_vkSwapChainSupportDetails.surfaceCapabilities.minImageExtent.width,
+				m_vkSwapChainSupportDetails.surfaceCapabilities.maxImageExtent.width);
+		}
+
+		// setting the below swap chain modes
+		m_vkCurrentPresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+		m_vkCurrentSurfaceFormat = { VK_FORMAT_B8G8R8A8_SRGB,  VK_COLORSPACE_SRGB_NONLINEAR_KHR};
+		
+		int32_t imageCount = m_vkSwapChainSupportDetails.surfaceCapabilities.minImageCount + 1;
+		if (m_vkSwapChainSupportDetails.surfaceCapabilities.maxImageCount > 0 && imageCount >
+			m_vkSwapChainSupportDetails.surfaceCapabilities.maxImageCount)
+		{
+			imageCount = m_vkSwapChainSupportDetails.surfaceCapabilities.minImageCount;
+		}
+
+		VkSwapchainCreateInfoKHR vkSwapchainCreateInfo{};
+		vkSwapchainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+		vkSwapchainCreateInfo.surface = m_pvkEngine->GetSurface();
+		vkSwapchainCreateInfo.imageExtent = swapChainExtent;
+		vkSwapchainCreateInfo.imageFormat = m_vkCurrentSurfaceFormat.format;
+		vkSwapchainCreateInfo.imageColorSpace = m_vkCurrentSurfaceFormat.colorSpace;
+		vkSwapchainCreateInfo.minImageCount = imageCount;
+		vkSwapchainCreateInfo.imageArrayLayers = 1;
+		vkSwapchainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+		if (m_vkQueueFamilyIndices.graphicsFamilyIndex.value() != m_vkQueueFamilyIndices.presentFamilyIndex.value())
+		{
+			uint32_t queueFamilyIndices[] = { m_vkQueueFamilyIndices.graphicsFamilyIndex.value(), m_vkQueueFamilyIndices.presentFamilyIndex.value() };
+			vkSwapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT; // image can be shared across multiple queue families without explicit ownership transfers.
+			vkSwapchainCreateInfo.queueFamilyIndexCount = 2;
+			vkSwapchainCreateInfo.pQueueFamilyIndices = queueFamilyIndices;
+		}
+		else
+		{
+			vkSwapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;  // an image will be owned by one queue at a time.
+			vkSwapchainCreateInfo.queueFamilyIndexCount = 0;
+			vkSwapchainCreateInfo.pQueueFamilyIndices = nullptr;
+		}
+		vkSwapchainCreateInfo.preTransform = m_vkSwapChainSupportDetails.surfaceCapabilities.currentTransform;
+		vkSwapchainCreateInfo.presentMode = m_vkCurrentPresentMode;
+		vkSwapchainCreateInfo.clipped = VK_TRUE;
+		vkSwapchainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
+		vkSwapchainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+		vkSwapchainCreateInfo.flags = VK_SWAPCHAIN_CREATE_PROTECTED_BIT_KHR;
+
+		VkSwapchainKHR swapChain;
+		if (vkCreateSwapchainKHR(m_vkDevice, &vkSwapchainCreateInfo, nullptr, &swapChain) != VK_SUCCESS)
+		{
+			return false;
+		}
+		vkLog->Log("Swap chain creation failed...");
+		//m_vkSwapchain = swapChain;
 		return true;
 	}
 }

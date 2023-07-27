@@ -15,7 +15,7 @@ namespace vk
 		bool StartEngine();
 		bool StopEngine();
 
-		const vkWindow* GetWindow() const;
+		vkWindow* GetWindow();
 		const vkDevice* GetDevice() const;
 		const VkInstance& GetInstance() const;
 		const VkSurfaceKHR& GetSurface() const;

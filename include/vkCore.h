@@ -6,3 +6,4 @@
 #include <set>
 #include <sstream>
 #include <optional>
+#include <algorithm>

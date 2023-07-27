@@ -52,4 +52,8 @@ namespace vk
 		}
 		return true;
 	}
+
+	void vk::vkWindow::GetFrameBufferSize(int* width, int* height)
+	{
+	}
 }

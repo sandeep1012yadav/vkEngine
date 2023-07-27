@@ -6,7 +6,7 @@ namespace vk
 	class vkDevice
 	{
 	public:
-		vkDevice(const VkInstance vkInstance, const vkEngine* pEngine);
+		vkDevice(const VkInstance vkInstance, vkEngine* pEngine);
 		~vkDevice();
 
 	private:
@@ -15,7 +15,14 @@ namespace vk
 			std::optional<uint32_t> graphicsFamilyIndex;
 			std::optional<uint32_t> presentFamilyIndex;
 		};
-		const vkEngine* m_pvkEngine;
+		struct SwapChainSupportDetails
+		{
+			VkSurfaceCapabilitiesKHR surfaceCapabilities;
+			std::vector<VkSurfaceFormatKHR> surfaceFormats;
+			std::vector<VkPresentModeKHR> presentMode;
+		};
+
+		vkEngine* m_pvkEngine;
 		VkInstance m_vkInstance;
 		VkPhysicalDevice m_vkPhysicalDevice;
 		VkPhysicalDeviceProperties m_vkPhysicalDeviceProperties;
@@ -24,16 +31,23 @@ namespace vk
 		QueueFamilyIndices m_vkQueueFamilyIndices;
 		VkQueue m_vkGraphicsQueue;
 		VkQueue m_vkPresentQueue;
+		std::vector<VkExtensionProperties> m_vkAvailableDeviceLevelExtentions;
+		SwapChainSupportDetails m_vkSwapChainSupportDetails;
+		VkSurfaceFormatKHR m_vkCurrentSurfaceFormat;
+		VkPresentModeKHR m_vkCurrentPresentMode;
+		VkSwapchainKHR m_vkSwapchain;
 
 
 		void PickPhysicalDevice();
-		
+		bool IsDeviceExtensionSupported(const std::string extension);
 		bool CheckDeviceExtensionSupport(const VkPhysicalDevice physicalDevice);
 		int  RateDeviceSuitability(const VkPhysicalDevice physicalDevice);
 		const QueueFamilyIndices& FindQueueFamilies();
 		bool IsDevieSuitable();
 
 		bool CreateLogicalDevice();
+		SwapChainSupportDetails QuerySwapChainSupportDetails();
+		bool CreateSwapChain();
 	};
 
 	

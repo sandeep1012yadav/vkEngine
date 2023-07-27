@@ -44,7 +44,7 @@ namespace vk
 		delete m_pvkWindow;
 	}
 
-	const vkWindow* vkEngine::GetWindow() const
+	vkWindow* vkEngine::GetWindow()
 	{
 		return m_pvkWindow;
 	}
@@ -99,8 +99,10 @@ namespace vk
 		std::vector<VkExtensionProperties> extensions(extensionCount);
 		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount,
 			extensions.data());
+
+		vkLog->Log("Supported instance level extension properties :");
 		for (const auto& extension : extensions) {
-			vkLog->Log(extension.extensionName);
+			vkLog->Log("	", extension.extensionName);
 		}
 		return true;
 	}
