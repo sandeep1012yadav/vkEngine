@@ -180,9 +180,13 @@ namespace vk
 		deviceCreateInfo.pQueueCreateInfos = vQueueCreateInfos.data();
 		deviceCreateInfo.pEnabledFeatures = &m_vkPhysicalDeviceFeatures;
 		
-		// TBD 
-		deviceCreateInfo.enabledExtensionCount = 0;
-		//deviceCreateInfo.ppEnabledExtensionNames
+		const std::vector<const char*> deviceExtensions = {
+			VK_KHR_SWAPCHAIN_EXTENSION_NAME
+		};
+		// TBD if we need to add more extensions  
+		deviceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());;
+		deviceCreateInfo.ppEnabledExtensionNames = deviceExtensions.data();
+		
 		deviceCreateInfo.enabledLayerCount = 0;
 
 		if (vkCreateDevice(m_vkPhysicalDevice, &deviceCreateInfo, nullptr, &m_vkDevice) != VK_SUCCESS)
@@ -256,9 +260,9 @@ namespace vk
 		m_vkCurrentPresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
 		m_vkCurrentSurfaceFormat = { VK_FORMAT_B8G8R8A8_SRGB,  VK_COLORSPACE_SRGB_NONLINEAR_KHR};
 		
-		int32_t imageCount = m_vkSwapChainSupportDetails.surfaceCapabilities.minImageCount + 1;
-		if (m_vkSwapChainSupportDetails.surfaceCapabilities.maxImageCount > 0 && imageCount >
-			m_vkSwapChainSupportDetails.surfaceCapabilities.maxImageCount)
+		uint32_t imageCount = m_vkSwapChainSupportDetails.surfaceCapabilities.minImageCount + 1;
+		if (m_vkSwapChainSupportDetails.surfaceCapabilities.maxImageCount > 0 && 
+			imageCount > m_vkSwapChainSupportDetails.surfaceCapabilities.maxImageCount)
 		{
 			imageCount = m_vkSwapChainSupportDetails.surfaceCapabilities.minImageCount;
 		}
@@ -297,7 +301,7 @@ namespace vk
 		{
 			return false;
 		}
-		vkLog->Log("Swap chain creation failed...");
+		vkLog->Log("Swap chain created successfully...");
 		//m_vkSwapchain = swapChain;
 		return true;
 	}
