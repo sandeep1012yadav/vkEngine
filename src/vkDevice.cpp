@@ -296,13 +296,11 @@ namespace vk
 		vkSwapchainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 		vkSwapchainCreateInfo.flags = VK_SWAPCHAIN_CREATE_PROTECTED_BIT_KHR;
 
-		VkSwapchainKHR swapChain;
-		if (vkCreateSwapchainKHR(m_vkDevice, &vkSwapchainCreateInfo, nullptr, &swapChain) != VK_SUCCESS)
+		if (vkCreateSwapchainKHR(m_vkDevice, &vkSwapchainCreateInfo, nullptr, &m_vkSwapchain) != VK_SUCCESS)
 		{
 			return false;
 		}
 		vkLog->Log("Swap chain created successfully...");
-		//m_vkSwapchain = swapChain;
 		return true;
 	}
 }
