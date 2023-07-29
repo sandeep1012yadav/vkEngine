@@ -109,14 +109,14 @@ namespace vk
 		{
 
 			vkLog->Log("Queue Family with index : \"", index,"\" has queues count : ", queueFamilyProperties.queueCount);
-			if (queueFamilyProperties.queueFlags & VK_QUEUE_GRAPHICS_BIT)
+			if (!m_vkQueueFamilyIndices.graphicsFamilyIndex.has_value() && queueFamilyProperties.queueFlags & VK_QUEUE_GRAPHICS_BIT)
 			{
 				vkLog->Log(">>>>>>>>>>>>>>>>>>>>>This queue is graphics queue");
 				m_vkQueueFamilyIndices.graphicsFamilyIndex = index;
 			}
 			VkBool32 presentSupport = false;
 			vkGetPhysicalDeviceSurfaceSupportKHR(m_vkPhysicalDevice, index, m_pvkEngine->GetSurface(), &presentSupport);
-			if (presentSupport)
+			if (!m_vkQueueFamilyIndices.presentFamilyIndex.has_value() && presentSupport)
 			{
 				vkLog->Log(">>>>>>>>>>>>>>>>>>>>>This queue is present queue");
 				m_vkQueueFamilyIndices.presentFamilyIndex = index;
@@ -272,9 +272,9 @@ namespace vk
 		vkSwapchainCreateInfo.minImageCount = imageCount;
 		vkSwapchainCreateInfo.imageArrayLayers = 1;
 		vkSwapchainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+		uint32_t queueFamilyIndices[] = { m_vkQueueFamilyIndices.graphicsFamilyIndex.value(), m_vkQueueFamilyIndices.presentFamilyIndex.value() };
 		if (m_vkQueueFamilyIndices.graphicsFamilyIndex.value() != m_vkQueueFamilyIndices.presentFamilyIndex.value())
 		{
-			uint32_t queueFamilyIndices[] = { m_vkQueueFamilyIndices.graphicsFamilyIndex.value(), m_vkQueueFamilyIndices.presentFamilyIndex.value() };
 			vkSwapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT; // image can be shared across multiple queue families without explicit ownership transfers.
 			vkSwapchainCreateInfo.queueFamilyIndexCount = 2;
 			vkSwapchainCreateInfo.pQueueFamilyIndices = queueFamilyIndices;
