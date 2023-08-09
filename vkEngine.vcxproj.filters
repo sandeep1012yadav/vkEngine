@@ -17,6 +17,9 @@
     <ClCompile Include="src\vkWindow.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\vkPipeline.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\vkCamera.h">
@@ -37,6 +40,9 @@
     <ClInclude Include="include\vkWindow.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="include\vkPipeline.h">
+      <Filter>include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="include">
@@ -45,5 +51,22 @@
     <Filter Include="src">
       <UniqueIdentifier>{eb41ee84-92ed-44cf-a09d-f83b43efafca}</UniqueIdentifier>
     </Filter>
+    <Filter Include="resources">
+      <UniqueIdentifier>{b6d68589-5198-4f70-bbaa-06f915a4e38f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="resources\shaders">
+      <UniqueIdentifier>{cd19c5a7-a0d1-4df4-91e4-5dcde6fa810a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="resources\shaders\triangle">
+      <UniqueIdentifier>{12731ae1-8e21-4f93-b2ec-409769c40e68}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="resources\shaders\triangle\triangle.frag">
+      <Filter>resources\shaders\triangle</Filter>
+    </None>
+    <None Include="resources\shaders\triangle\triangle.vert">
+      <Filter>resources\shaders\triangle</Filter>
+    </None>
   </ItemGroup>
 </Project>

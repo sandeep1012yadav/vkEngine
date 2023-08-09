@@ -118,6 +118,9 @@
       <AdditionalLibraryDirectories>.\thirdpartylibraries\glfw-3.3.8.bin.WIN64\lib-vc2022</AdditionalLibraryDirectories>
       <AdditionalDependencies>glfw3.lib;vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PreBuildEvent>
+      <Command>C:\MyWorkspace\VulkanEngine\vkEngine\glsl_to_spir-v.bat</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -140,6 +143,7 @@
     <ClCompile Include="src\vkDevice.cpp" />
     <ClCompile Include="src\vkEngine.cpp" />
     <ClCompile Include="src\vkLogger.cpp" />
+    <ClCompile Include="src\vkPipeline.cpp" />
     <ClCompile Include="src\vkWindow.cpp" />
     <ClCompile Include="vkApp.cpp" />
   </ItemGroup>
@@ -149,7 +153,12 @@
     <ClInclude Include="include\vkDevice.h" />
     <ClInclude Include="include\vkEngine.h" />
     <ClInclude Include="include\vkLogger.h" />
+    <ClInclude Include="include\vkPipeline.h" />
     <ClInclude Include="include\vkWindow.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="resources\shaders\triangle\triangle.frag" />
+    <None Include="resources\shaders\triangle\triangle.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

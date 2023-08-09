@@ -30,7 +30,7 @@ namespace vk
 
 	vkDevice::~vkDevice()
 	{
-
+		vkDestroySwapchainKHR(m_vkDevice, m_vkSwapchain, nullptr);
 	}
 
 	void vkDevice::PickPhysicalDevice()
@@ -141,7 +141,7 @@ namespace vk
 
 	bool vkDevice::IsDeviceExtensionSupported(const std::string extension)
 	{
-		for (VkExtensionProperties ext : m_vkAvailableDeviceLevelExtentions)
+		for (const VkExtensionProperties& ext : m_vkAvailableDeviceLevelExtentions)
 		{
 			if (!strcmp(ext.extensionName, extension.c_str()))
 			{
