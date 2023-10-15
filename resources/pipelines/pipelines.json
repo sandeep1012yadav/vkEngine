@@ -1,0 +1,19 @@
+{
+  "default": {
+    "vertex_shader": "",
+    "fragment_shader": "",
+    "primitive_topology": "triangle_list",
+    "depth_clamp_enable": "false",
+    "discard_rasterizer": "false",
+    "polygon_mode": "polygon_mode_fill",
+    "line_thickness": "1.0",
+    "cull_mode": "cull_mode_back",
+    "front_face": "clockwise",
+    "depth_bias_enable": "false",
+    "sample_shading": "false",
+    "rasterization_samples": "1",
+
+
+  }
+
+}

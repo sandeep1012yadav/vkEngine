@@ -6,8 +6,8 @@ using namespace std;
 
 int WinMain()
 {
-	//cout << "Welcome To Vulkan Engine";
-
+	string s = "*******************************************************\n****************Welcome To Vulkan Engine***************\n*******************************************************\n*******************************************************";
+	vk::vkLog->Log(s);
 	vk::vkEngine* pEngine = new vk::vkEngine();
 
 	pEngine->StartEngine();

@@ -48,7 +48,7 @@ namespace vk
 	{
 		return m_pvkWindow;
 	}
-	const vkDevice* vkEngine::GetDevice() const
+	vkDevice* vkEngine::GetDevice()
 	{
 		return m_pvkDevice;
 	}

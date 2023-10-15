@@ -7,6 +7,11 @@ namespace vk
 	{
 	public:
 		vkDevice(const VkInstance vkInstance, vkEngine* pEngine);
+		VkDevice GetLogicalDevice() { return m_vkDevice; }
+		VkSwapchainKHR& GetSwapChain();
+		VkFormat GetSwapChainImageFormat();
+		VkExtent2D GetSwapChainExtent();
+		std::vector<VkImage>& GetSwapChainImages();
 		~vkDevice();
 
 	private:
@@ -33,9 +38,11 @@ namespace vk
 		VkQueue m_vkPresentQueue;
 		std::vector<VkExtensionProperties> m_vkAvailableDeviceLevelExtentions;
 		SwapChainSupportDetails m_vkSwapChainSupportDetails;
-		VkSurfaceFormatKHR m_vkCurrentSurfaceFormat;
-		VkPresentModeKHR m_vkCurrentPresentMode;
+		VkSurfaceFormatKHR m_vkSwapChainSurfaceFormat;
+		VkPresentModeKHR m_vkSwapChainPresentMode;
 		VkSwapchainKHR m_vkSwapchain;
+		std::vector<VkImage> m_vkSwapChainImages;
+		VkExtent2D m_vkSwapChainExtent;
 
 
 		void PickPhysicalDevice();

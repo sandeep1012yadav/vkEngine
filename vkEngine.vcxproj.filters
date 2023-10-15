@@ -20,6 +20,12 @@
     <ClCompile Include="src\vkPipeline.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\vkPipelineManager.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\vkMesh.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\vkCamera.h">
@@ -43,6 +49,18 @@
     <ClInclude Include="include\vkPipeline.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="include\vkPipelineManager.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vkMesh.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="resources\shaders\scene_global.h">
+      <Filter>resources\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vkDescriptorSetLayout.h">
+      <Filter>include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="include">
@@ -60,13 +78,19 @@
     <Filter Include="resources\shaders\triangle">
       <UniqueIdentifier>{12731ae1-8e21-4f93-b2ec-409769c40e68}</UniqueIdentifier>
     </Filter>
+    <Filter Include="resources\pipelines">
+      <UniqueIdentifier>{59b892cc-4036-40a0-9ecd-20c54fa6faeb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="resources\shaders\triangle\triangle.frag">
+    <None Include="resources\shaders\triangle\default.frag">
       <Filter>resources\shaders\triangle</Filter>
     </None>
-    <None Include="resources\shaders\triangle\triangle.vert">
+    <None Include="resources\shaders\triangle\default.vert">
       <Filter>resources\shaders\triangle</Filter>
+    </None>
+    <None Include="resources\pipelines\pipelines.json">
+      <Filter>resources\pipelines</Filter>
     </None>
   </ItemGroup>
 </Project>

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "vkCore.h"
-
+#include "vkLogger.h"
 namespace vk
 {
 	class vkWindow;
@@ -16,7 +16,7 @@ namespace vk
 		bool StopEngine();
 
 		vkWindow* GetWindow();
-		const vkDevice* GetDevice() const;
+		vkDevice* GetDevice();
 		const VkInstance& GetInstance() const;
 		const VkSurfaceKHR& GetSurface() const;
 		~vkEngine();

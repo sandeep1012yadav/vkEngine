@@ -238,27 +238,27 @@ namespace vk
 			vkLog->Log("Swap chain details are not sufficient to create swapchain...");
 		}
 
-		VkExtent2D swapChainExtent;
+		
 		if (m_vkSwapChainSupportDetails.surfaceCapabilities.currentExtent.width != std::numeric_limits<uint32_t>::max())
 		{
-			swapChainExtent = m_vkSwapChainSupportDetails.surfaceCapabilities.currentExtent;
+			m_vkSwapChainExtent = m_vkSwapChainSupportDetails.surfaceCapabilities.currentExtent;
 		}
 		else
 		{
 			int width, height;
 			m_pvkEngine->GetWindow()->GetFrameBufferSize(&width, &height);
-			swapChainExtent.height = static_cast<uint32_t>(height);
-			swapChainExtent.width = static_cast<uint32_t>(width);
+			m_vkSwapChainExtent.height = static_cast<uint32_t>(height);
+			m_vkSwapChainExtent.width = static_cast<uint32_t>(width);
 
-			swapChainExtent.height = std::clamp(swapChainExtent.height, m_vkSwapChainSupportDetails.surfaceCapabilities.minImageExtent.height,
+			m_vkSwapChainExtent.height = std::clamp(m_vkSwapChainExtent.height, m_vkSwapChainSupportDetails.surfaceCapabilities.minImageExtent.height,
 				m_vkSwapChainSupportDetails.surfaceCapabilities.maxImageExtent.height);
-			swapChainExtent.width = std::clamp(swapChainExtent.width, m_vkSwapChainSupportDetails.surfaceCapabilities.minImageExtent.width,
+			m_vkSwapChainExtent.width = std::clamp(m_vkSwapChainExtent.width, m_vkSwapChainSupportDetails.surfaceCapabilities.minImageExtent.width,
 				m_vkSwapChainSupportDetails.surfaceCapabilities.maxImageExtent.width);
 		}
 
 		// setting the below swap chain modes
-		m_vkCurrentPresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
-		m_vkCurrentSurfaceFormat = { VK_FORMAT_B8G8R8A8_SRGB,  VK_COLORSPACE_SRGB_NONLINEAR_KHR};
+		m_vkSwapChainPresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+		m_vkSwapChainSurfaceFormat = { VK_FORMAT_B8G8R8A8_SRGB,  VK_COLORSPACE_SRGB_NONLINEAR_KHR};
 		
 		uint32_t imageCount = m_vkSwapChainSupportDetails.surfaceCapabilities.minImageCount + 1;
 		if (m_vkSwapChainSupportDetails.surfaceCapabilities.maxImageCount > 0 && 
@@ -270,9 +270,9 @@ namespace vk
 		VkSwapchainCreateInfoKHR vkSwapchainCreateInfo{};
 		vkSwapchainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
 		vkSwapchainCreateInfo.surface = m_pvkEngine->GetSurface();
-		vkSwapchainCreateInfo.imageExtent = swapChainExtent;
-		vkSwapchainCreateInfo.imageFormat = m_vkCurrentSurfaceFormat.format;
-		vkSwapchainCreateInfo.imageColorSpace = m_vkCurrentSurfaceFormat.colorSpace;
+		vkSwapchainCreateInfo.imageExtent = m_vkSwapChainExtent;
+		vkSwapchainCreateInfo.imageFormat = m_vkSwapChainSurfaceFormat.format;
+		vkSwapchainCreateInfo.imageColorSpace = m_vkSwapChainSurfaceFormat.colorSpace;
 		vkSwapchainCreateInfo.minImageCount = imageCount;
 		vkSwapchainCreateInfo.imageArrayLayers = 1;
 		vkSwapchainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
@@ -290,7 +290,7 @@ namespace vk
 			vkSwapchainCreateInfo.pQueueFamilyIndices = nullptr;
 		}
 		vkSwapchainCreateInfo.preTransform = m_vkSwapChainSupportDetails.surfaceCapabilities.currentTransform;
-		vkSwapchainCreateInfo.presentMode = m_vkCurrentPresentMode;
+		vkSwapchainCreateInfo.presentMode = m_vkSwapChainPresentMode;
 		vkSwapchainCreateInfo.clipped = VK_TRUE;
 		vkSwapchainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
 		vkSwapchainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
@@ -300,7 +300,33 @@ namespace vk
 		{
 			return false;
 		}
+		// retrieving handles to images of swapchain 
+
+		vkGetSwapchainImagesKHR(m_vkDevice, m_vkSwapchain, &imageCount, nullptr);
+		m_vkSwapChainImages.resize(imageCount);
+		vkGetSwapchainImagesKHR(m_vkDevice, m_vkSwapchain, &imageCount, m_vkSwapChainImages.data());
+
 		vkLog->Log("Swap chain created successfully...");
 		return true;
+	}
+
+	VkSwapchainKHR& vkDevice::GetSwapChain()
+	{
+		return m_vkSwapchain;
+	}
+
+	std::vector<VkImage>& vkDevice::GetSwapChainImages()
+	{
+		return m_vkSwapChainImages;
+	}
+
+	VkFormat vkDevice::GetSwapChainImageFormat()
+	{
+		return m_vkSwapChainSurfaceFormat.format;
+	}
+
+	VkExtent2D vkDevice::GetSwapChainExtent()
+	{
+		return m_vkSwapChainExtent;
 	}
 }

@@ -143,22 +143,29 @@
     <ClCompile Include="src\vkDevice.cpp" />
     <ClCompile Include="src\vkEngine.cpp" />
     <ClCompile Include="src\vkLogger.cpp" />
+    <ClCompile Include="src\vkMesh.cpp" />
     <ClCompile Include="src\vkPipeline.cpp" />
+    <ClCompile Include="src\vkPipelineManager.cpp" />
     <ClCompile Include="src\vkWindow.cpp" />
     <ClCompile Include="vkApp.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\vkCamera.h" />
     <ClInclude Include="include\vkCore.h" />
+    <ClInclude Include="include\vkDescriptorSetLayout.h" />
     <ClInclude Include="include\vkDevice.h" />
     <ClInclude Include="include\vkEngine.h" />
     <ClInclude Include="include\vkLogger.h" />
+    <ClInclude Include="include\vkMesh.h" />
     <ClInclude Include="include\vkPipeline.h" />
+    <ClInclude Include="include\vkPipelineManager.h" />
     <ClInclude Include="include\vkWindow.h" />
+    <ClInclude Include="resources\shaders\scene_global.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="resources\shaders\triangle\triangle.frag" />
-    <None Include="resources\shaders\triangle\triangle.vert" />
+    <None Include="resources\pipelines\pipelines.json" />
+    <None Include="resources\shaders\triangle\default.frag" />
+    <None Include="resources\shaders\triangle\default.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
