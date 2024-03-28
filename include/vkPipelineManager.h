@@ -4,12 +4,7 @@
 
 namespace vk
 {
-	enum eDescriptorSets
-	{
-		DS_GLOBAL,
-		DS_DEFAULT
-	};
-	enum ePipelines
+	enum ePipeline
 	{
 		PL_DEFAULT
 	};
@@ -23,15 +18,17 @@ namespace vk
 		~vkPipelineManager();
 
 		bool CreateDescriptorSetLayouts();
-		VkDescriptorSetLayout GetDescriptorSetLayout(eDescriptorSets set);
+		std::vector<VkDescriptorSetLayout> GetDescriptorSetLayouts(ePipeline pipeline);
 		bool CreatePipelineLayouts();
-		VkPipelineLayout GetPipelineLayout(ePipelines pipeline);
+		VkPipelineLayout GetPipelineLayout(ePipeline pipeline);
 		bool CreateRenderPasses();
-		VkRenderPass GetRenderPass(ePipelines pipeline);
+		VkRenderPass GetRenderPass(ePipeline pipeline);
+
+		bool CreatePipelines();
 	private:
 		vkEngine* m_pvkEngine;
 		VkDevice m_LogicalDevice;
-		std::map<eDescriptorSets, VkDescriptorSetLayout> mDescriptorSetLayoutMap;
-		std::map<ePipelines, VkPipelineLayout> mPipelineLayoutMap;
+		std::map<ePipeline, std::vector<VkDescriptorSetLayout>> mDescriptorSetLayoutsMap;
+		std::map<ePipeline, VkPipelineLayout> mPipelineLayoutMap;
 	};
 }

@@ -10,32 +10,21 @@ namespace vk
 		glm::vec2 vTexCoord;
 		glm::vec3 vColor;
 
-		static VkVertexInputBindingDescription GetBindingDescription()
+		static const std::vector<VkVertexInputBindingDescription> GetBindingDesc()
 		{
-			VkVertexInputBindingDescription vertexBindingDesc{};
-			vertexBindingDesc.binding = 0;
-			vertexBindingDesc.stride = sizeof(vkVertex);
-			vertexBindingDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-			return vertexBindingDesc;
+			const std::vector<VkVertexInputBindingDescription> vertexBindingDescriptions = {
+				vk::initializers::VertexInputBindingDescription(0, sizeof(vkVertex), VK_VERTEX_INPUT_RATE_VERTEX)
+			};
+			return vertexBindingDescriptions;
 		}
 
-		static std::array<VkVertexInputAttributeDescription, 3> GetAttributeDesciption()
+		static std::vector<VkVertexInputAttributeDescription> GetAttributeDesc()
 		{
-			std::array<VkVertexInputAttributeDescription, 3> vertexAttributeDesc{};
-			vertexAttributeDesc[0].binding = 0;
-			vertexAttributeDesc[0].location = 0;
-			vertexAttributeDesc[0].format = VK_FORMAT_R32G32B32A32_SFLOAT;
-			vertexAttributeDesc[0].offset = offsetof(vkVertex, vPos);
-
-			vertexAttributeDesc[1].binding = 0;
-			vertexAttributeDesc[1].location = 1;
-			vertexAttributeDesc[1].format = VK_FORMAT_R32G32_SFLOAT;
-			vertexAttributeDesc[1].offset = offsetof(vkVertex, vTexCoord);
-
-			vertexAttributeDesc[2].binding = 0;
-			vertexAttributeDesc[2].location = 2;
-			vertexAttributeDesc[2].format = VK_FORMAT_R32G32B32_SFLOAT;
-			vertexAttributeDesc[2].offset = offsetof(vkVertex, vColor);
+			const std::vector<VkVertexInputAttributeDescription> vertexAttributeDesc = {
+				vk::initializers::VertexInputAttributeDescription(0, 0, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(vkVertex,vPos)),
+				vk::initializers::VertexInputAttributeDescription(0, 1, VK_FORMAT_R32G32_SFLOAT, offsetof(vkVertex, vTexCoord)),
+				vk::initializers::VertexInputAttributeDescription(0, 2, VK_FORMAT_R32G32B32_SFLOAT, offsetof(vkVertex, vColor))
+			};
 
 			return vertexAttributeDesc;
 		}
