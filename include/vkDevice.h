@@ -7,11 +7,14 @@ namespace vk
 	{
 	public:
 		vkDevice(const VkInstance vkInstance, vkEngine* pEngine);
-		VkDevice GetLogicalDevice() { return m_vkDevice; }
-		VkSwapchainKHR& GetSwapChain();
+		const VkDevice& GetLogicalDevice() { return m_vkDevice; }
+		const VkSwapchainKHR& GetSwapChain();
 		VkFormat GetSwapChainImageFormat();
+		VkFormat GetDepthStencilFormat();
 		VkExtent2D GetSwapChainExtent();
 		std::vector<VkImage>& GetSwapChainImages();
+		uint32_t FindMemoryType(const VkMemoryRequirements& suitableMemRequirements, const VkMemoryPropertyFlags& preferredMemType);
+		VkFormat GetSupportedDepthFormat();
 		~vkDevice();
 
 	private:
@@ -44,6 +47,7 @@ namespace vk
 		std::vector<VkImage> m_vkSwapChainImages;
 		VkExtent2D m_vkSwapChainExtent;
 
+		DepthStencilBuffer m_vkDepthStencilBuffer;
 
 		void PickPhysicalDevice();
 		bool IsDeviceExtensionSupported(const std::string extension);
@@ -55,6 +59,7 @@ namespace vk
 		bool CreateLogicalDevice();
 		SwapChainSupportDetails QuerySwapChainSupportDetails();
 		bool CreateSwapChain();
+		VkResult CreateDepthStencilBuffer();
 	};
 
 	

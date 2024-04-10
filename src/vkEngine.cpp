@@ -1,9 +1,9 @@
 #include "vkEngine.h"
 #include <windows.h>
 #include "vkLogger.h"
-
 #include "vkWindow.h"
 #include "vkDevice.h"
+#include "vkPipelineManager.h"
 #include <vector>
 namespace vk
 {
@@ -11,15 +11,16 @@ namespace vk
 	{
 		m_pvkWindow = nullptr;
 		m_pvkDevice = nullptr;
+		m_pvkPipelineManager = nullptr;
 		if (InitializeWindow() == false)
 		{
-			vkLog->Log("Window Initialization Failed");
+			vkLog->Log("Window initialization failed...");
 			return;
 		}
 		
 		if (InitializeVulkan() == false)
 		{
-			vkLog->Log("Vulkan Initialization Failed");
+			vkLog->Log("Vulkan initialization failed...");
 			return;
 		}
 
@@ -31,8 +32,13 @@ namespace vk
 
 		if (InitializeDevice() == false)
 		{
-			vkLog->Log("Device Initialization Failed");
+			vkLog->Log("Device initialization failed...");
 			return;
+		}
+
+		if (InitializePipelineManager() == false)
+		{
+			vkLog->Log("PipelineManager initialization failed...");
 		}
 
 		m_bEngineRunning = false;
@@ -115,6 +121,12 @@ namespace vk
 	bool vkEngine::InitializeDevice()
 	{
 		m_pvkDevice = new vkDevice(m_vkInstance, this);
+		return true;
+	}
+
+	bool vkEngine::InitializePipelineManager()
+	{
+		m_pvkPipelineManager = new vkPipelineManager(this);
 		return true;
 	}
 

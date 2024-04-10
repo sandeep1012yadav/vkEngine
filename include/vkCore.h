@@ -1,6 +1,6 @@
 #pragma once
 #include <vulkan/vulkan.h>
-
+#include <vulkan/vulkan_core.h>
 #include <vector>
 #include <array>
 #include <string>
@@ -9,30 +9,143 @@
 #include <sstream>
 #include <optional>
 #include <algorithm>
-
+#include <fstream>
 
 
 namespace vk
 {
+	
+	typedef struct DepthStencilBuffer 
+	{
+		VkImage image;
+		VkDeviceMemory memory;
+		VkImageView view;
+		VkFormat format;
+	}DepthStencilBuffer;
+
+	namespace tools
+	{
+		std::vector<uint32_t> LoadSPIRV(const std::string& filename);
+		VkShaderModule CreateShaderModule(const VkDevice& device, const std::string& spirName);
+	};
+
 	namespace initializers
 	{
-		
-		inline VkGraphicsPipelineCreateInfo PipelineCreateInfo(
-			VkPipelineLayout layout,
-			VkRenderPass renderPass,
-			VkPipelineCreateFlags flags = 0)
+		inline VkImageCreateInfo ImageCreateInfo(
+			const VkImageType& imageType,
+			const VkFormat& format,const VkExtent3D extent,
+			const uint32_t mipLevels,
+			const uint32_t arrayLayers,
+			const VkSampleCountFlagBits& sampleCountFlagBits,
+			const VkImageTiling& tiling,
+			const VkImageUsageFlags& usages)
 		{
-			VkGraphicsPipelineCreateInfo pipelineCreateInfo{};
-			pipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-			pipelineCreateInfo.layout = layout;
-			pipelineCreateInfo.renderPass = renderPass;
-			pipelineCreateInfo.flags = flags;
-			pipelineCreateInfo.basePipelineIndex = -1;
-			pipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE;
-			return pipelineCreateInfo;
+			VkImageCreateInfo imageCI{};
+			imageCI.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+			imageCI.imageType = imageType;
+			imageCI.format = format;
+			imageCI.extent = extent;
+			imageCI.mipLevels = mipLevels;
+			imageCI.arrayLayers = arrayLayers;
+			imageCI.samples = sampleCountFlagBits;
+			imageCI.tiling = tiling;
+			imageCI.usage = usages;
+
+			return imageCI;
 		}
 
-		inline VkGraphicsPipelineCreateInfo PipelineCreateInfo()
+		inline VkImageViewCreateInfo ImageViewCreateInfo(
+			const VkImage& image,
+			const VkImageViewType& viewType,
+			const VkFormat& format,
+			const VkImageAspectFlags& aspectMask, 
+			const uint32_t baseMipLevel, 
+			const uint32_t levelCount, 
+			const uint32_t baseArrayLayer, 
+			const uint32_t layerCount)
+		{
+			VkImageViewCreateInfo imageViewCI{};
+			imageViewCI.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+			imageViewCI.image = image;
+			imageViewCI.viewType = viewType;
+			imageViewCI.format = format;
+			imageViewCI.subresourceRange.aspectMask = aspectMask;
+			imageViewCI.subresourceRange.baseMipLevel = baseMipLevel;
+			imageViewCI.subresourceRange.levelCount = levelCount;
+			imageViewCI.subresourceRange.baseArrayLayer = baseArrayLayer;
+			imageViewCI.subresourceRange.layerCount = layerCount;
+
+			return imageViewCI;
+		}
+
+		inline VkMemoryAllocateInfo MemoryAllocateInfo(const VkDeviceSize& deviceSize, uint32_t memTypeIndex)
+		{
+			VkMemoryAllocateInfo memoryAllocateInfo{};
+			memoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+			memoryAllocateInfo.allocationSize = deviceSize;
+			memoryAllocateInfo.memoryTypeIndex = memTypeIndex;
+			return memoryAllocateInfo;
+		}
+
+		
+
+		inline VkPipelineShaderStageCreateInfo PipelineShaderStageCreateInfo(
+			const VkShaderStageFlagBits& shaderStage,
+			const VkShaderModule& module,
+			const char* main)
+		{
+			VkPipelineShaderStageCreateInfo shaderStageCI = {};
+			shaderStageCI.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+			shaderStageCI.stage = shaderStage;
+			shaderStageCI.pName = main;
+			shaderStageCI.module = module;
+
+			return shaderStageCI;
+		}
+		
+		inline VkGraphicsPipelineCreateInfo GraphicsPipelineCreateInfo(
+			const uint32_t& shaderStagesCount,
+			const VkPipelineShaderStageCreateInfo* pStages,
+			const VkPipelineVertexInputStateCreateInfo* pVertexInputState,
+			const VkPipelineInputAssemblyStateCreateInfo* pInputAssemblyState,
+			const VkPipelineTessellationStateCreateInfo* pTessellationState,
+			const VkPipelineViewportStateCreateInfo* pViewportState,
+			const VkPipelineRasterizationStateCreateInfo* pRasterizationState,
+			const VkPipelineMultisampleStateCreateInfo* pMultisampleState,
+			const VkPipelineDepthStencilStateCreateInfo* pDepthStencilState,
+			const VkPipelineColorBlendStateCreateInfo* pColorBlendState,
+			const VkPipelineDynamicStateCreateInfo* pDynamicState,
+			const VkPipelineLayout& layout,
+			const VkRenderPass& renderPass,
+			const uint32_t& subpassIndex = 0,
+			const VkPipelineCreateFlags& flags = 0,
+			const VkPipeline& basePipelineHandle = VK_NULL_HANDLE,
+			const int32_t& basePipelineIndex = 0)
+		{
+			VkGraphicsPipelineCreateInfo pipelineCI{};
+			pipelineCI.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+			pipelineCI.stageCount = shaderStagesCount;
+			pipelineCI.pStages = pStages;
+			pipelineCI.pVertexInputState = pVertexInputState;
+			pipelineCI.pInputAssemblyState = pInputAssemblyState;
+			pipelineCI.pTessellationState = pTessellationState;
+			pipelineCI.pViewportState = pViewportState;
+			pipelineCI.pRasterizationState = pRasterizationState;
+			pipelineCI.pMultisampleState = pMultisampleState;
+			pipelineCI.pDepthStencilState = pDepthStencilState;
+			pipelineCI.pColorBlendState = pColorBlendState;
+			pipelineCI.pDynamicState = pDynamicState;
+			pipelineCI.layout = layout;
+			pipelineCI.renderPass = renderPass;
+			pipelineCI.subpass = subpassIndex;
+			pipelineCI.flags = flags;
+			pipelineCI.basePipelineHandle = basePipelineHandle;
+			pipelineCI.basePipelineIndex = basePipelineIndex;
+			
+			return pipelineCI;
+		}
+
+		inline VkGraphicsPipelineCreateInfo GraphicsPipelineCreateInfo()
 		{
 			VkGraphicsPipelineCreateInfo pipelineCreateInfo{};
 			pipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -156,6 +269,44 @@ namespace vk
 			pipelineDepthStencilStateCreateInfo.depthCompareOp = depthCompareOp;
 			pipelineDepthStencilStateCreateInfo.back.compareOp = VK_COMPARE_OP_ALWAYS;
 			return pipelineDepthStencilStateCreateInfo;
+		}
+
+		inline VkPipelineMultisampleStateCreateInfo PipelineMultisampleStateCreateInfo(
+			const VkBool32& sampleShadingEnable,
+			const VkSampleCountFlagBits& rasterizationSamples)
+		{
+			VkPipelineMultisampleStateCreateInfo multiSampleStateCI{};
+			multiSampleStateCI.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+			multiSampleStateCI.sampleShadingEnable = sampleShadingEnable;
+			multiSampleStateCI.rasterizationSamples = rasterizationSamples;
+
+			return multiSampleStateCI;
+		}
+
+		inline VkPipelineColorBlendAttachmentState PipelineColorBlendAttachmentState(
+			const VkBool32& attachmentBlendEnable,
+			const VkColorComponentFlags& colorWriteMask)
+		{
+			VkPipelineColorBlendAttachmentState colarBlendAttachmentState{};
+			colarBlendAttachmentState.blendEnable = attachmentBlendEnable;
+			colarBlendAttachmentState.colorWriteMask = colorWriteMask;
+
+			return colarBlendAttachmentState;
+		}
+
+		inline VkPipelineColorBlendStateCreateInfo PipelineColorBlendStateCreateInfo(
+			const VkBool32& logicOpEnable,
+			const VkLogicOp& logicOp,
+			const uint32_t& blendAttachmentCount, 
+			const VkPipelineColorBlendAttachmentState* pBlendAttachments)
+		{
+			VkPipelineColorBlendStateCreateInfo colorBlendStateCI{};
+			colorBlendStateCI.logicOpEnable = logicOpEnable;
+			colorBlendStateCI.logicOp = logicOp;
+			colorBlendStateCI.attachmentCount = blendAttachmentCount;
+			colorBlendStateCI.pAttachments = pBlendAttachments;
+
+			return colorBlendStateCI;
 		}
 
 	}

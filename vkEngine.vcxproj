@@ -140,6 +140,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\vkCamera.cpp" />
+    <ClCompile Include="src\vkCore.cpp" />
     <ClCompile Include="src\vkDevice.cpp" />
     <ClCompile Include="src\vkEngine.cpp" />
     <ClCompile Include="src\vkLogger.cpp" />

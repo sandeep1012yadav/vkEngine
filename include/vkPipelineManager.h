@@ -4,9 +4,14 @@
 
 namespace vk
 {
-	enum ePipeline
+	enum class ePipeline
 	{
 		PL_DEFAULT
+	};
+
+	enum class eRenderPass
+	{
+		RP_Forward_Rendering_Geometry
 	};
 
 	class vkEngine;
@@ -18,17 +23,20 @@ namespace vk
 		~vkPipelineManager();
 
 		bool CreateDescriptorSetLayouts();
-		std::vector<VkDescriptorSetLayout> GetDescriptorSetLayouts(ePipeline pipeline);
 		bool CreatePipelineLayouts();
-		VkPipelineLayout GetPipelineLayout(ePipeline pipeline);
 		bool CreateRenderPasses();
-		VkRenderPass GetRenderPass(ePipeline pipeline);
+		const std::vector<VkDescriptorSetLayout>& GetDescriptorSetLayouts(ePipeline pipeline);
+		const VkPipelineLayout& GetPipelineLayout(ePipeline pipeline);
+		const VkRenderPass& GetRenderPass(eRenderPass renderPass);
+		const VkPipeline& GetPipeline(ePipeline pipeline);
 
 		bool CreatePipelines();
 	private:
 		vkEngine* m_pvkEngine;
-		VkDevice m_LogicalDevice;
-		std::map<ePipeline, std::vector<VkDescriptorSetLayout>> mDescriptorSetLayoutsMap;
-		std::map<ePipeline, VkPipelineLayout> mPipelineLayoutMap;
+		VkDevice m_vkLogicalDevice;
+		std::map<eRenderPass, VkRenderPass> m_vkRenderPasses;
+		std::map<ePipeline, std::vector<VkDescriptorSetLayout>> m_vkDescriptorSetLayoutsMap;
+		std::map<ePipeline, VkPipelineLayout> m_vkPipelineLayoutMap;
+		std::map<ePipeline, VkPipeline> m_vkPipelineMap;
 	};
 }

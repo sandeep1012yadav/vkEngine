@@ -1,3 +1,4 @@
+#include "vkCore.h"
 #include "vkDevice.h"
 #include "vkLogger.h"
 #include "vkEngine.h"
@@ -26,11 +27,22 @@ namespace vk
 			vkLog->Log("Not able to create swapchain...");
 			return;
 		}
+		if (CreateDepthStencilBuffer() != VK_SUCCESS)
+		{
+			vkLog->Log("Not able to create depth stencil buffer...");
+			return;
+		}
 	}
 
 	vkDevice::~vkDevice()
 	{
 		vkDestroySwapchainKHR(m_vkDevice, m_vkSwapchain, nullptr);
+
+
+		// cleaning depth stencil buffer
+		vkDestroyImageView(m_vkDevice, m_vkDepthStencilBuffer.view, nullptr);
+		vkFreeMemory(m_vkDevice, m_vkDepthStencilBuffer.memory, nullptr);
+		vkDestroyImage(m_vkDevice, m_vkDepthStencilBuffer.image, nullptr);
 	}
 
 	void vkDevice::PickPhysicalDevice()
@@ -67,10 +79,10 @@ namespace vk
 		m_vkAvailableDeviceLevelExtentions.resize(deviceLevelExtensionCount);
 		vkEnumerateDeviceExtensionProperties(m_vkPhysicalDevice, nullptr, &deviceLevelExtensionCount, m_vkAvailableDeviceLevelExtentions.data());
 
-		vkLog->Log("Supported device level extension properties :");
+		/*vkLog->Log("Supported device level extension properties :");
 		for (const auto& extension : m_vkAvailableDeviceLevelExtentions) {
 			vkLog->Log("	", extension.extensionName);
-		}
+		}*/
 	}
 
 	bool vkDevice::CheckDeviceExtensionSupport(const VkPhysicalDevice physicalDevice)
@@ -181,7 +193,10 @@ namespace vk
 		deviceCreateInfo.pEnabledFeatures = &m_vkPhysicalDeviceFeatures;
 		
 		const std::vector<const char*> deviceExtensions = {
-			VK_KHR_SWAPCHAIN_EXTENSION_NAME
+			VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+			//"VK_EXT_graphics_pipeline_library",
+			//"VK_EXT_shader_object"
+
 		};
 		// TBD if we need to add more extensions  
 		deviceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());;
@@ -225,6 +240,7 @@ namespace vk
 
 	bool vkDevice::CreateSwapChain()
 	{
+		vkLog->Log("************Started creating swapchain***********************");
 		if (!IsDeviceExtensionSupported(std::string("VK_KHR_swapchain")))
 		{
 			vkLog->Log("Swap chain device extension is not supported on the device...");
@@ -256,9 +272,12 @@ namespace vk
 				m_vkSwapChainSupportDetails.surfaceCapabilities.maxImageExtent.width);
 		}
 
+		vkLog->Log("minImageCount in surface capabilities : ", m_vkSwapChainSupportDetails.surfaceCapabilities.minImageCount);
+		vkLog->Log("maxImageCount in surface capabilities : ", m_vkSwapChainSupportDetails.surfaceCapabilities.maxImageCount);
+
 		// setting the below swap chain modes
 		m_vkSwapChainPresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
-		m_vkSwapChainSurfaceFormat = { VK_FORMAT_B8G8R8A8_SRGB,  VK_COLORSPACE_SRGB_NONLINEAR_KHR};
+		m_vkSwapChainSurfaceFormat = { VK_FORMAT_R8G8B8A8_SRGB,  VK_COLORSPACE_SRGB_NONLINEAR_KHR};
 		
 		uint32_t imageCount = m_vkSwapChainSupportDetails.surfaceCapabilities.minImageCount + 1;
 		if (m_vkSwapChainSupportDetails.surfaceCapabilities.maxImageCount > 0 && 
@@ -277,6 +296,7 @@ namespace vk
 		vkSwapchainCreateInfo.imageArrayLayers = 1;
 		vkSwapchainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 		uint32_t queueFamilyIndices[] = { m_vkQueueFamilyIndices.graphicsFamilyIndex.value(), m_vkQueueFamilyIndices.presentFamilyIndex.value() };
+		
 		if (m_vkQueueFamilyIndices.graphicsFamilyIndex.value() != m_vkQueueFamilyIndices.presentFamilyIndex.value())
 		{
 			vkSwapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT; // image can be shared across multiple queue families without explicit ownership transfers.
@@ -306,11 +326,13 @@ namespace vk
 		m_vkSwapChainImages.resize(imageCount);
 		vkGetSwapchainImagesKHR(m_vkDevice, m_vkSwapchain, &imageCount, m_vkSwapChainImages.data());
 
+		vkLog->Log("created swapchain images : ", imageCount);
+
 		vkLog->Log("Swap chain created successfully...");
 		return true;
 	}
 
-	VkSwapchainKHR& vkDevice::GetSwapChain()
+	const VkSwapchainKHR& vkDevice::GetSwapChain()
 	{
 		return m_vkSwapchain;
 	}
@@ -325,8 +347,96 @@ namespace vk
 		return m_vkSwapChainSurfaceFormat.format;
 	}
 
+	VkFormat vkDevice::GetDepthStencilFormat()
+	{
+		return m_vkDepthStencilBuffer.format;
+	}
+
 	VkExtent2D vkDevice::GetSwapChainExtent()
 	{
 		return m_vkSwapChainExtent;
+	}
+
+	VkFormat vkDevice::GetSupportedDepthFormat()
+	{
+		// Since all depth formats may be optional, we need to find a suitable depth format to use
+		// Start with the highest precision packed format
+		std::vector<VkFormat> formatList = {
+			VK_FORMAT_D32_SFLOAT_S8_UINT,
+			VK_FORMAT_D32_SFLOAT,
+			VK_FORMAT_D24_UNORM_S8_UINT,
+			VK_FORMAT_D16_UNORM_S8_UINT,
+			VK_FORMAT_D16_UNORM
+		};
+
+		for (auto& format : formatList)
+		{
+			VkFormatProperties formatProps;
+			vkGetPhysicalDeviceFormatProperties(m_vkPhysicalDevice, format, &formatProps);
+			if (formatProps.optimalTilingFeatures & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT)
+			{
+				return format;
+			}
+		}
+
+		return VK_FORMAT_UNDEFINED;
+	}
+
+	uint32_t vkDevice::FindMemoryType(const VkMemoryRequirements& suitableMemRequirements, const VkMemoryPropertyFlags& preferredMemType)
+	{
+		uint32_t selectedMemoryTypeForResource = 0;
+		VkPhysicalDeviceMemoryProperties systemMemProp;
+		vkGetPhysicalDeviceMemoryProperties(m_vkPhysicalDevice, &systemMemProp);
+
+		for (uint32_t memIndex = 0; memIndex < systemMemProp.memoryTypeCount; memIndex++)
+		{
+			if (suitableMemRequirements.memoryTypeBits & (1 << memIndex) && systemMemProp.memoryTypes[memIndex].propertyFlags & preferredMemType)
+			{
+				selectedMemoryTypeForResource = memIndex;
+			}
+		}
+
+		return selectedMemoryTypeForResource;
+	}
+
+	VkResult vkDevice::CreateDepthStencilBuffer()
+	{
+		vkLog->Log("\nCreating depth stencil buffer ...");
+		VkResult result;
+		m_vkDepthStencilBuffer.format = GetSupportedDepthFormat();
+		if (m_vkDepthStencilBuffer.format == VK_FORMAT_UNDEFINED){
+			vkLog->Log("Couldn't find the suitable depth format supported on the device");
+		}
+
+		VkImageCreateInfo imageCI = vk::initializers::ImageCreateInfo(VK_IMAGE_TYPE_2D, m_vkDepthStencilBuffer.format, { m_vkSwapChainExtent.width, m_vkSwapChainExtent.height, 1 },
+			1, 1, VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
+		result = vkCreateImage(m_vkDevice, &imageCI, nullptr, &m_vkDepthStencilBuffer.image);
+		if (result != VK_SUCCESS) {
+			vkLog->Log("Creation of image for depth stencil buffer failed.");
+		}
+
+		VkMemoryRequirements memReqs{};
+		vkGetImageMemoryRequirements(m_vkDevice, m_vkDepthStencilBuffer.image, &memReqs);
+		uint32_t preferredMemTypeIndex = FindMemoryType(memReqs, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+		if (preferredMemTypeIndex == 0) {
+			vkLog->Log("Preferred memory type is not found.");
+		}
+
+		VkMemoryAllocateInfo memAllocInfo = vk::initializers::MemoryAllocateInfo(memReqs.size, preferredMemTypeIndex);
+		result = vkAllocateMemory(m_vkDevice, &memAllocInfo, nullptr, &m_vkDepthStencilBuffer.memory);
+		if (result != VK_SUCCESS) {
+			vkLog->Log("Memory is not allocated for depth stencil buffer");
+		}
+
+		result = vkBindImageMemory(m_vkDevice, m_vkDepthStencilBuffer.image, m_vkDepthStencilBuffer.memory, 0);
+
+		// Create the depth image view
+		VkImageAspectFlags aspect = (m_vkDepthStencilBuffer.format >= VK_FORMAT_D16_UNORM_S8_UINT) ? VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT : VK_IMAGE_ASPECT_DEPTH_BIT;
+		VkImageViewCreateInfo imageViewCI = vk::initializers::ImageViewCreateInfo(m_vkDepthStencilBuffer.image, VK_IMAGE_VIEW_TYPE_2D, m_vkDepthStencilBuffer.format, aspect, 0, 1, 0, 1);
+		
+		result = vkCreateImageView(m_vkDevice, &imageViewCI, nullptr, &m_vkDepthStencilBuffer.view);
+		
+		vkLog->Log("Depth stencil buffer created ...");
+		return result;
 	}
 }
