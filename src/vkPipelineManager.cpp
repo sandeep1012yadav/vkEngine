@@ -65,16 +65,11 @@ namespace vk
 		VkDescriptorSetLayout descriptorSetLayout;
 		
 		// creating descriptor set layout for default shader //////////////////////////////////////////////////
-		std::array<VkDescriptorSetLayoutBinding, 2> defaultDescriptorSetLayoutBindings{};
+		std::array<VkDescriptorSetLayoutBinding, 1> defaultDescriptorSetLayoutBindings{};
 		defaultDescriptorSetLayoutBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 		defaultDescriptorSetLayoutBindings[0].binding = 0;
 		defaultDescriptorSetLayoutBindings[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 		defaultDescriptorSetLayoutBindings[0].descriptorCount = 1;
-
-		defaultDescriptorSetLayoutBindings[1].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		defaultDescriptorSetLayoutBindings[1].binding = 0;
-		defaultDescriptorSetLayoutBindings[1].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-		defaultDescriptorSetLayoutBindings[1].descriptorCount = 1;
 
 		VkDescriptorSetLayoutCreateInfo defaultDescriptorLayoutCI{};
 		defaultDescriptorLayoutCI.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -87,6 +82,23 @@ namespace vk
 			vkLog->Log("Default descriptor set layput creation failed.");
 		}
 		vDescriptorSetLayouts.push_back(descriptorSetLayout);
+
+		defaultDescriptorSetLayoutBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		defaultDescriptorSetLayoutBindings[0].binding = 0;
+		defaultDescriptorSetLayoutBindings[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+		defaultDescriptorSetLayoutBindings[0].descriptorCount = 1;
+
+		defaultDescriptorLayoutCI.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+		defaultDescriptorLayoutCI.bindingCount = static_cast<uint32_t>(defaultDescriptorSetLayoutBindings.size());
+		defaultDescriptorLayoutCI.pBindings = defaultDescriptorSetLayoutBindings.data();
+
+		result = vkCreateDescriptorSetLayout(m_vkLogicalDevice, &defaultDescriptorLayoutCI, nullptr, &descriptorSetLayout);
+		if (result != VK_SUCCESS) {
+			bResult = false;
+			vkLog->Log("Default descriptor set layput creation failed.");
+		}
+		vDescriptorSetLayouts.push_back(descriptorSetLayout);
+
 		m_vkDescriptorSetLayoutsMap[ePipeline::PL_DEFAULT] = vDescriptorSetLayouts;
 		///////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -276,7 +288,7 @@ namespace vk
 		VkPipelineViewportStateCreateInfo viewPortStateCI = vk::initializers::PipelineViewportStateCreateInfo(viewPorts, scissors);
 
 		VkPipelineRasterizationStateCreateInfo rasterizationStateCI = vk::initializers::PipelineRasterizationStateCreateInfo(VK_POLYGON_MODE_FILL,
-			VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE);
+			VK_CULL_MODE_NONE, VK_FRONT_FACE_COUNTER_CLOCKWISE);
 
 		VkPipelineDepthStencilStateCreateInfo depthStencilStateCI = vk::initializers::PipelineDepthStencilStateCreateInfo(VK_TRUE, VK_TRUE, VK_COMPARE_OP_LESS_OR_EQUAL); // disabling stencil test for now
 

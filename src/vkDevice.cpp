@@ -276,9 +276,43 @@ namespace vk
 		vkLog->Log("maxImageCount in surface capabilities : ", m_vkSwapChainSupportDetails.surfaceCapabilities.maxImageCount);
 
 		// setting the below swap chain modes
-		m_vkSwapChainPresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
-		m_vkSwapChainSurfaceFormat = { VK_FORMAT_R8G8B8A8_SRGB,  VK_COLORSPACE_SRGB_NONLINEAR_KHR};
-		
+		m_vkSwapChainPresentMode = VK_PRESENT_MODE_FIFO_KHR;  // basic mode available
+		for (uint32_t presentModeIndex = 0; presentModeIndex < m_vkSwapChainSupportDetails.presentMode.size(); presentModeIndex++)
+		{
+			if (m_vkSwapChainSupportDetails.presentMode[presentModeIndex] == VK_PRESENT_MODE_MAILBOX_KHR)
+			{
+				m_vkSwapChainPresentMode = m_vkSwapChainSupportDetails.presentMode[presentModeIndex];
+				break;
+			}
+			if (m_vkSwapChainSupportDetails.presentMode[presentModeIndex] == VK_PRESENT_MODE_IMMEDIATE_KHR)
+			{
+				m_vkSwapChainPresentMode = m_vkSwapChainSupportDetails.presentMode[presentModeIndex];
+			}
+		}
+
+		//choosing formats for swapchain
+		std::vector<VkFormat> preferredFormats = {
+			VK_FORMAT_R8G8B8A8_SRGB,
+			VK_FORMAT_B8G8R8A8_SRGB,
+			VK_FORMAT_R8G8B8A8_UNORM,
+			VK_FORMAT_B8G8R8A8_UNORM,
+			VK_FORMAT_A8B8G8R8_UNORM_PACK32
+		};
+
+		m_vkSwapChainSurfaceFormat = m_vkSwapChainSupportDetails.surfaceFormats[0];
+		for (uint32_t formatIndex = 0; formatIndex < preferredFormats.size(); formatIndex++)
+		{
+			VkFormat preferredFormat = preferredFormats[formatIndex];
+			for (uint32_t availableFormatIndex = 0; availableFormatIndex < m_vkSwapChainSupportDetails.surfaceFormats.size(); availableFormatIndex++)
+			{
+				if (preferredFormat == m_vkSwapChainSupportDetails.surfaceFormats[availableFormatIndex].format)
+				{
+					m_vkSwapChainSurfaceFormat = m_vkSwapChainSupportDetails.surfaceFormats[availableFormatIndex];
+					break;
+				}
+			}
+		}
+
 		uint32_t imageCount = m_vkSwapChainSupportDetails.surfaceCapabilities.minImageCount + 1;
 		if (m_vkSwapChainSupportDetails.surfaceCapabilities.maxImageCount > 0 && 
 			imageCount > m_vkSwapChainSupportDetails.surfaceCapabilities.maxImageCount)
@@ -314,7 +348,7 @@ namespace vk
 		vkSwapchainCreateInfo.clipped = VK_TRUE;
 		vkSwapchainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
 		vkSwapchainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-		vkSwapchainCreateInfo.flags = VK_SWAPCHAIN_CREATE_PROTECTED_BIT_KHR;
+		vkSwapchainCreateInfo.flags = 0;// VK_SWAPCHAIN_CREATE_PROTECTED_BIT_KHR;
 
 		if (vkCreateSwapchainKHR(m_vkDevice, &vkSwapchainCreateInfo, nullptr, &m_vkSwapchain) != VK_SUCCESS)
 		{
