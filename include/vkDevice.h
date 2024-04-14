@@ -15,6 +15,8 @@ namespace vk
 		std::vector<VkImage>& GetSwapChainImages();
 		uint32_t FindMemoryType(const VkMemoryRequirements& suitableMemRequirements, const VkMemoryPropertyFlags& preferredMemType);
 		VkFormat GetSupportedDepthFormat();
+		bool CreateFrameBuffers();
+		bool CreateCommandBuffers();
 		~vkDevice();
 
 	private:
@@ -40,14 +42,19 @@ namespace vk
 		VkQueue m_vkGraphicsQueue;
 		VkQueue m_vkPresentQueue;
 		std::vector<VkExtensionProperties> m_vkAvailableDeviceLevelExtentions;
+
 		SwapChainSupportDetails m_vkSwapChainSupportDetails;
 		VkSurfaceFormatKHR m_vkSwapChainSurfaceFormat;
 		VkPresentModeKHR m_vkSwapChainPresentMode;
 		VkSwapchainKHR m_vkSwapchain;
 		std::vector<VkImage> m_vkSwapChainImages;
+		std::vector<VkImageView> m_vkSwapChainImageViews;
+		std::vector<VkFramebuffer> m_vkFrameBuffers;
 		VkExtent2D m_vkSwapChainExtent;
 
 		DepthStencilBuffer m_vkDepthStencilBuffer;
+
+		
 
 		void PickPhysicalDevice();
 		bool IsDeviceExtensionSupported(const std::string extension);
@@ -59,6 +66,7 @@ namespace vk
 		bool CreateLogicalDevice();
 		SwapChainSupportDetails QuerySwapChainSupportDetails();
 		bool CreateSwapChain();
+		
 		VkResult CreateDepthStencilBuffer();
 	};
 

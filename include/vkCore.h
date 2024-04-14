@@ -15,17 +15,22 @@
 namespace vk
 {
 	
-	typedef struct DepthStencilBuffer 
+	typedef struct _DepthStencilBuffer 
 	{
 		VkImage image;
 		VkDeviceMemory memory;
 		VkImageView view;
 		VkFormat format;
 	}DepthStencilBuffer;
+	
+	//typedef struct _SwapChainBuffer
+	//{
+	//	VkImage image;
+	//	VkImageView view;
+	//}SwapChainBuffer;
 
 	namespace tools
 	{
-		std::vector<uint32_t> LoadSPIRV(const std::string& filename);
 		VkShaderModule CreateShaderModule(const VkDevice& device, const std::string& spirName);
 	};
 
@@ -101,6 +106,26 @@ namespace vk
 			shaderStageCI.module = module;
 
 			return shaderStageCI;
+		}
+
+		inline VkFramebufferCreateInfo FramebufferCreateInfo(
+			const VkRenderPass& renderPass,
+			const uint32_t& attachmentCount,
+			const VkImageView* pAttachments,
+			const uint32_t& width,
+			const uint32_t& height,
+			const uint32_t& layers)
+		{
+			VkFramebufferCreateInfo frameBufferCI{};
+			frameBufferCI.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+			frameBufferCI.renderPass = renderPass;
+			frameBufferCI.attachmentCount = attachmentCount;
+			frameBufferCI.pAttachments = pAttachments;
+			frameBufferCI.width = width;
+			frameBufferCI.height = height;
+			frameBufferCI.layers = layers;
+			
+			return frameBufferCI;
 		}
 		
 		inline VkGraphicsPipelineCreateInfo GraphicsPipelineCreateInfo(

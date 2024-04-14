@@ -17,8 +17,10 @@ namespace vk
 
 		vkWindow* GetWindow();
 		vkDevice* GetDevice();
+		vkPipelineManager* GetPipelineManager();
 		const VkInstance& GetInstance() const;
 		const VkSurfaceKHR& GetSurface() const;
+
 		~vkEngine();
 
 	private:
@@ -34,5 +36,6 @@ namespace vk
 		bool CreateSurface();
 		bool InitializeDevice();
 		bool InitializePipelineManager();
+		bool CreateFrameBuffers();
 	};
 }

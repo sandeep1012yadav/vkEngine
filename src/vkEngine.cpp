@@ -41,6 +41,11 @@ namespace vk
 			vkLog->Log("PipelineManager initialization failed...");
 		}
 
+		if (CreateFrameBuffers() == false)
+		{
+			vkLog->Log("Frame Buffers creation failed...");
+		}
+
 		m_bEngineRunning = false;
 	}
 
@@ -48,6 +53,9 @@ namespace vk
 	{
 		vkDestroyInstance(m_vkInstance, nullptr);
 		delete m_pvkWindow;
+
+		delete m_pvkPipelineManager;
+		delete m_pvkDevice;
 	}
 
 	vkWindow* vkEngine::GetWindow()
@@ -58,6 +66,12 @@ namespace vk
 	{
 		return m_pvkDevice;
 	}
+
+	vkPipelineManager* vkEngine::GetPipelineManager()
+	{
+		return m_pvkPipelineManager;
+	}
+
 	const VkInstance& vkEngine::GetInstance() const
 	{
 		return m_vkInstance;
@@ -128,6 +142,11 @@ namespace vk
 	{
 		m_pvkPipelineManager = new vkPipelineManager(this);
 		return true;
+	}
+
+	bool vkEngine::CreateFrameBuffers()
+	{
+		return m_pvkDevice->CreateFrameBuffers();
 	}
 
 	bool vkEngine::StartEngine()

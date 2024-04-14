@@ -3,6 +3,7 @@
 #include "vkLogger.h"
 #include "vkEngine.h"
 #include "vkWindow.h"
+#include "vkPipelineManager.h"
 namespace vk
 {
 	vkDevice::vkDevice(const VkInstance vkInstance, vkEngine* pEngine)
@@ -299,6 +300,7 @@ namespace vk
 			VK_FORMAT_A8B8G8R8_UNORM_PACK32
 		};
 
+		bool bPreferredFormatFound = false;
 		m_vkSwapChainSurfaceFormat = m_vkSwapChainSupportDetails.surfaceFormats[0];
 		for (uint32_t formatIndex = 0; formatIndex < preferredFormats.size(); formatIndex++)
 		{
@@ -308,8 +310,11 @@ namespace vk
 				if (preferredFormat == m_vkSwapChainSupportDetails.surfaceFormats[availableFormatIndex].format)
 				{
 					m_vkSwapChainSurfaceFormat = m_vkSwapChainSupportDetails.surfaceFormats[availableFormatIndex];
+					bPreferredFormatFound = true;
 					break;
 				}
+				if (bPreferredFormatFound)
+					break;
 			}
 		}
 
@@ -364,6 +369,45 @@ namespace vk
 
 		vkLog->Log("Swap chain created successfully...");
 		return true;
+	}
+
+	bool vkDevice::CreateFrameBuffers()
+	{
+		bool bStatus = true;
+		m_vkFrameBuffers.resize(m_vkSwapChainImages.size());
+		m_vkSwapChainImageViews.resize(m_vkSwapChainImages.size());
+
+		vkPipelineManager* pipelineManager = m_pvkEngine->GetPipelineManager();
+		VkRenderPass renderPass = pipelineManager->GetRenderPass(eRenderPass::RP_Forward_Rendering_Geometry);
+
+		for (uint32_t frameBufferIndex = 0; frameBufferIndex < m_vkFrameBuffers.size(); frameBufferIndex++)
+		{
+			VkImageViewCreateInfo imageViewCI = vk::initializers::ImageViewCreateInfo(
+				m_vkSwapChainImages[frameBufferIndex], VK_IMAGE_VIEW_TYPE_2D, m_vkSwapChainSurfaceFormat.format, VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1);
+
+			VkResult result = vkCreateImageView(m_vkDevice, &imageViewCI, nullptr, &m_vkSwapChainImageViews[frameBufferIndex]);
+			if (result != VK_SUCCESS) {
+				vkLog->Log("ImageView creation from Swapchain Image failed ");
+				bStatus = false;
+				break;
+			}
+			
+			std::vector<VkImageView> attachments;
+			attachments.push_back(m_vkSwapChainImageViews[frameBufferIndex]);
+			attachments.push_back(m_vkDepthStencilBuffer.view);
+			VkFramebufferCreateInfo frameBufferCI = vk::initializers::FramebufferCreateInfo(renderPass, static_cast<uint32_t>(attachments.size()), 
+				attachments.data(), m_vkSwapChainExtent.width, m_vkSwapChainExtent.height, 1);
+
+			result = vkCreateFramebuffer(m_vkDevice, &frameBufferCI, nullptr, &m_vkFrameBuffers[frameBufferIndex]);
+			if (result != VK_SUCCESS) {
+				vkLog->Log("Frame buffer creation from Swapchain Image failed ");
+				bStatus = false;
+				break;
+			}
+		}
+
+		vkLog->Log("Frame buffers created successfully...");
+		return bStatus;
 	}
 
 	const VkSwapchainKHR& vkDevice::GetSwapChain()
@@ -472,5 +516,15 @@ namespace vk
 		
 		vkLog->Log("Depth stencil buffer created ...");
 		return result;
+	}
+
+	bool vkDevice::CreateCommandBuffers()
+	{
+		bool bStatus = true;
+		VkCommandPoolCreateInfo commandPoolCI{};
+		commandPoolCI.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+		commandPoolCI.queueFamilyIndex = m_vkQueueFamilyIndices.graphicsFamilyIndex.value();
+		commandPoolCI.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+		return bStatus;
 	}
 }
