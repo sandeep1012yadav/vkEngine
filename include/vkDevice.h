@@ -6,18 +6,27 @@ namespace vk
 	class vkDevice
 	{
 	public:
+		
+
 		vkDevice(const VkInstance vkInstance, vkEngine* pEngine);
+		~vkDevice();
+
+
 		const VkDevice& GetLogicalDevice() { return m_vkDevice; }
-		const VkSwapchainKHR& GetSwapChain();
-		VkFormat GetSwapChainImageFormat();
-		VkFormat GetDepthStencilFormat();
-		VkExtent2D GetSwapChainExtent();
-		std::vector<VkImage>& GetSwapChainImages();
+		const VkSwapchainKHR& GetSwapChain() { return m_vkSwapchain; };
+		const VkFormat& GetSwapChainImageFormat() { return m_vkSwapChainSurfaceFormat.format; }
+		const VkFormat& GetDepthStencilFormat() { return m_vkDepthStencilBuffer.format; }
+		const VkExtent2D& GetSwapChainExtent() { return m_vkSwapChainExtent; }
+		const std::vector<VkImage>& GetSwapChainImages() { return m_vkSwapChainImages; }
+		const std::vector<VkFramebuffer>& GetFrameBuffers() { return m_vkFrameBuffers; };
+		const VkCommandBuffer& GetCommandBuffers() { return m_vkCommandBuffer; };
+		const VkQueue& GetGraphicsQueue() { return m_vkGraphicsQueue; }
+		const VkQueue& GetPresentQueue() { return m_vkPresentQueue; }
+
 		uint32_t FindMemoryType(const VkMemoryRequirements& suitableMemRequirements, const VkMemoryPropertyFlags& preferredMemType);
 		VkFormat GetSupportedDepthFormat();
 		bool CreateFrameBuffers();
 		bool CreateCommandBuffers();
-		~vkDevice();
 
 	private:
 		struct QueueFamilyIndices
@@ -53,6 +62,9 @@ namespace vk
 		VkExtent2D m_vkSwapChainExtent;
 
 		DepthStencilBuffer m_vkDepthStencilBuffer;
+
+		VkCommandPool m_vkCommandPool;
+		VkCommandBuffer m_vkCommandBuffer;
 
 		
 

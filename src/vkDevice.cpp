@@ -410,31 +410,6 @@ namespace vk
 		return bStatus;
 	}
 
-	const VkSwapchainKHR& vkDevice::GetSwapChain()
-	{
-		return m_vkSwapchain;
-	}
-
-	std::vector<VkImage>& vkDevice::GetSwapChainImages()
-	{
-		return m_vkSwapChainImages;
-	}
-
-	VkFormat vkDevice::GetSwapChainImageFormat()
-	{
-		return m_vkSwapChainSurfaceFormat.format;
-	}
-
-	VkFormat vkDevice::GetDepthStencilFormat()
-	{
-		return m_vkDepthStencilBuffer.format;
-	}
-
-	VkExtent2D vkDevice::GetSwapChainExtent()
-	{
-		return m_vkSwapChainExtent;
-	}
-
 	VkFormat vkDevice::GetSupportedDepthFormat()
 	{
 		// Since all depth formats may be optional, we need to find a suitable depth format to use
@@ -521,10 +496,24 @@ namespace vk
 	bool vkDevice::CreateCommandBuffers()
 	{
 		bool bStatus = true;
-		VkCommandPoolCreateInfo commandPoolCI{};
-		commandPoolCI.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-		commandPoolCI.queueFamilyIndex = m_vkQueueFamilyIndices.graphicsFamilyIndex.value();
-		commandPoolCI.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+		VkCommandPoolCreateInfo commandPoolCI = vk::initializers::CommandPoolCreateInfo(
+			VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT, m_vkQueueFamilyIndices.graphicsFamilyIndex.value());
+
+		VkResult result = vkCreateCommandPool(m_vkDevice, &commandPoolCI, nullptr, &m_vkCommandPool);
+		if (result != VK_SUCCESS) {
+			vkLog->Log("Command buffer pool is not created.");
+			bStatus = false;
+		}
+
+		VkCommandBufferAllocateInfo commandBufferAI = vk::initializers::CommandBufferAllocateInfo(m_vkCommandPool, VK_COMMAND_BUFFER_LEVEL_PRIMARY, 1);
+
+		result = vkAllocateCommandBuffers(m_vkDevice, &commandBufferAI, &m_vkCommandBuffer);
+		if (result != VK_SUCCESS) {
+			vkLog->Log("Command buffer is not created.");
+			bStatus = false;
+		}
+
+		vkLog->Log("Command pool and command buffers created ...");
 		return bStatus;
 	}
 }

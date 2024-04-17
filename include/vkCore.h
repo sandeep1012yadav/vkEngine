@@ -10,6 +10,7 @@
 #include <optional>
 #include <algorithm>
 #include <fstream>
+#include <chrono>
 
 
 namespace vk
@@ -332,6 +333,51 @@ namespace vk
 			colorBlendStateCI.pAttachments = pBlendAttachments;
 
 			return colorBlendStateCI;
+		}
+
+		inline VkCommandPoolCreateInfo CommandPoolCreateInfo(
+			const VkCommandPoolCreateFlags& flags,
+			const uint32_t& queueFamilyIndex)
+		{
+			VkCommandPoolCreateInfo commandPoolCI{};
+			commandPoolCI.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+			commandPoolCI.flags = flags;
+			commandPoolCI.queueFamilyIndex = queueFamilyIndex;
+
+			return commandPoolCI;
+		}
+
+		inline VkCommandBufferAllocateInfo CommandBufferAllocateInfo(
+			const VkCommandPool& commandPool,
+			const VkCommandBufferLevel& level,
+			const uint32_t& commandBufferCount)
+		{
+			VkCommandBufferAllocateInfo commandBufferAI{};
+			commandBufferAI.commandPool = commandPool;
+			commandBufferAI.level = level;
+			commandBufferAI.commandBufferCount = commandBufferCount;
+
+			return commandBufferAI;
+		}
+
+		inline VkFenceCreateInfo FenceCreateInfo(const VkFenceCreateFlags& flag)
+		{
+			VkFenceCreateInfo fenceCI = {};
+			fenceCI.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+			fenceCI.pNext = NULL;
+			fenceCI.flags = flag;
+
+			return fenceCI;
+		}
+
+		inline VkSemaphoreCreateInfo SemaphoreCreateInfo()
+		{
+			VkSemaphoreCreateInfo semaphoreCI = {};
+			semaphoreCI.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+			semaphoreCI.pNext = NULL;
+			semaphoreCI.flags = 0; // Reserved for future use
+
+			return semaphoreCI;
 		}
 
 	}

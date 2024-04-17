@@ -29,6 +29,12 @@
     <ClCompile Include="src\vkCore.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\vkObject.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\vkTriangle.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\vkCamera.h">
@@ -62,6 +68,12 @@
       <Filter>resources\shaders</Filter>
     </ClInclude>
     <ClInclude Include="include\vkDescriptorSetLayout.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vkObject.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vkTriangle.h">
       <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>
