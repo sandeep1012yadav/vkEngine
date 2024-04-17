@@ -81,10 +81,10 @@ namespace vk
 		m_vkAvailableDeviceLevelExtentions.resize(deviceLevelExtensionCount);
 		vkEnumerateDeviceExtensionProperties(m_vkPhysicalDevice, nullptr, &deviceLevelExtensionCount, m_vkAvailableDeviceLevelExtentions.data());
 
-		/*vkLog->Log("Supported device level extension properties :");
+		vkLog->Log("Supported device level extension properties :");
 		for (const auto& extension : m_vkAvailableDeviceLevelExtentions) {
 			vkLog->Log("	", extension.extensionName);
-		}*/
+		}
 	}
 
 	bool vkDevice::CheckDeviceExtensionSupport(const VkPhysicalDevice physicalDevice)

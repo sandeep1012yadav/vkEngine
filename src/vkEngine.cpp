@@ -312,6 +312,20 @@ namespace vk
 		vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
 
+		VkViewport viewport{};
+		viewport.height = swapChainExtent.height;
+		viewport.width = swapChainExtent.width;
+		viewport.minDepth = (float)0.0f;
+		viewport.maxDepth = (float)1.0f;
+		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+		// Update dynamic scissor state
+		VkRect2D scissor{};
+		scissor.extent.width = swapChainExtent.width;
+		scissor.extent.height = swapChainExtent.height;
+		scissor.offset.x = 0;
+		scissor.offset.y = 0;
+		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
 		m_pRenderer->RenderScene(commandBuffer, fTimeElapsed);
 
 

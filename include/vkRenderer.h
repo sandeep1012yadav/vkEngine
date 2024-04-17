@@ -42,6 +42,8 @@ namespace vk
 		bool LinkDescriptorSetsToResources();
 
 		void RenderFrame(const VkCommandBuffer& commandBuffer, vkFrameObject* pFrameObj, uint32_t& drawableFrameIndex);
+		void UpdateSceneUniformBuffers();
+		void UpdateFrameUniformBuffers(vkFrameObject* pFrameObj, uint32_t& drawableFrameIndex);
 
 		friend class vkEngine;
 
@@ -51,7 +53,6 @@ namespace vk
 		vkScene* m_pMainScene;
 
 		VkDescriptorPool m_DescriptorPool;
-
 
 		SceneUniformBufferObject m_SceneUBO;
 		FrameUniformBufferObject m_FrameUBO;

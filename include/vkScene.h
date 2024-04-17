@@ -6,6 +6,7 @@ namespace vk
 	class vkEngine;
 	class vkGameObject;
 	class vkCamera;
+
 	class vkScene : public vkObject
 	{
 	public:

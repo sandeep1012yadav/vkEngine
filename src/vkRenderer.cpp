@@ -8,6 +8,7 @@
 #include "vkMesh.h"
 #include "vkResourcePool.h"
 #include "vkRenderer.h"
+#include "vkCamera.h"
 namespace vk
 {
 	vkRenderer::vkRenderer(const vkEngine* pEngine, const vkPipelineManager* pPipelineManager) : m_pEngine(pEngine), m_pPipelineManager(pPipelineManager)
@@ -95,7 +96,7 @@ namespace vk
 			bStatus = false;
 		}
 
-		return false;
+		return bStatus;
 	}
 
 	bool vkRenderer::AllocateDescriptorSets()
@@ -168,6 +169,46 @@ namespace vk
 		return bStatus;
 	}
 
+	void vkRenderer::UpdateFrameUniformBuffers(vkFrameObject* pFrameObj, uint32_t& drawableFrameIndex)
+	{
+		if (pFrameObj == NULL)
+			return;
+
+		if (pFrameObj->mNbMeshes > 0)
+		{
+			m_FrameUBO.worldMatrix = pFrameObj->mWorldTransformation;
+			vk::tools::UpdateUniformBuffer(m_pDevice->GetLogicalDevice(), m_FrameBuffers[drawableFrameIndex].bufferMemory,
+				&m_FrameUBO, sizeof(FrameUniformBufferObject));
+			drawableFrameIndex++;
+		}
+		for (uint32_t i = 0; i < pFrameObj->mNbChildren; i++)
+		{
+			UpdateFrameUniformBuffers(pFrameObj->m_pChildren[i], drawableFrameIndex);
+		}
+	}
+
+	void vkRenderer::UpdateSceneUniformBuffers()
+	{
+		for (uint32_t sceneBufferIndex = 0; sceneBufferIndex < m_NbSceneBuffers; sceneBufferIndex++)
+		{
+			vkCamera* pMainCam = m_pMainScene->GetMainCamera();
+			m_SceneUBO.projMatrix = pMainCam->GetProjectionMatrix();
+			m_SceneUBO.viewMatrix = pMainCam->GetViewMatrix();
+			vk::tools::UpdateUniformBuffer(m_pDevice->GetLogicalDevice(), m_SceneBuffers[sceneBufferIndex].bufferMemory,
+				&m_SceneUBO, sizeof(SceneUniformBufferObject));
+		}
+
+		std::vector<vkGameObject*> sceneGameObjects = m_pMainScene->GetSceneGameObjects();
+		uint32_t nbGameObjects = static_cast<uint32_t>(sceneGameObjects.size());
+
+		for (uint32_t i = 0; i < nbGameObjects; i++)
+		{
+			vkGameObject* pGameObject = sceneGameObjects[i];
+			uint32_t drawableFrame = 0;
+			UpdateFrameUniformBuffers(pGameObject->m_pFrameObject, drawableFrame);
+		}
+	}
+
 	void vkRenderer::RenderFrame(const VkCommandBuffer& commandBuffer, vkFrameObject* pFrameObj, uint32_t& drawableFrameIndex)
 	{
 		if (pFrameObj == NULL)
@@ -177,10 +218,11 @@ namespace vk
 		{
 			VkDescriptorSet frameDescriptorSets[] = { m_FrameDescriptorSets[drawableFrameIndex] };
 			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_DefautPipelineLayout, 1, 1, frameDescriptorSets, 0, nullptr);
+
 			for (uint32_t i = 0; i < pFrameObj->mNbMeshes; i++)
 			{
 				vkMesh* pMesh = vkResourcePool::GetInstance()->GetMesh(pFrameObj->m_pMeshes[i]);
-				vkCmdDrawIndexed(commandBuffer, pMesh->mNbIndices, 1, pMesh->mStartIndexLocation, 0, 1);
+				vkCmdDrawIndexed(commandBuffer, pMesh->mNbIndices, 1, pMesh->mStartIndexLocation, 0, 0);
 			}
 			drawableFrameIndex++;
 		}
@@ -192,6 +234,8 @@ namespace vk
 
 	float vkRenderer::RenderScene(const VkCommandBuffer& commandBuffer, float fTimeElapsed)
 	{
+		UpdateSceneUniformBuffers();
+
 		std::vector<vkGameObject*> sceneGameObjects = m_pMainScene->GetSceneGameObjects();
 		uint32_t nbGameObjects = static_cast<uint32_t>(sceneGameObjects.size());
 
@@ -215,4 +259,6 @@ namespace vk
 
 		return 0;
 	}
+
+	
 }

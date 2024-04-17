@@ -49,5 +49,15 @@ namespace vk
 				return VK_NULL_HANDLE;
 			}
 		}
+
+		void UpdateUniformBuffer(VkDevice device, VkDeviceMemory memory, const void* data, size_t size)
+		{
+			void* mappedMemory;
+			vkMapMemory(device, memory, 0, size, 0, &mappedMemory);
+			memcpy(mappedMemory, data, size);
+			// If the memory property doesn't include VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+			// you need to flush the mapped memory range to make it visible to the GPU
+			vkUnmapMemory(device, memory);
+		}
 	}
 }

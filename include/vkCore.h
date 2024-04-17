@@ -36,6 +36,8 @@ namespace vk
 			std::copy(vec.begin(), vec.end(), arr);
 			return arr;
 		}
+
+		void UpdateUniformBuffer(VkDevice device, VkDeviceMemory memory, const void* data, size_t size);
 	};
 
 	namespace initializers
