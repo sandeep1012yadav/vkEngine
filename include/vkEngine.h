@@ -32,21 +32,28 @@ namespace vk
 		void Process(float fTimeElapsed);
 		void Render(float fTimeElapsed);
 
+		void CursorPosCallback(double xPos, double yPos);
+		void MouseButtonCallback(int button, int action, int mods);
+		void KeyCallback(int key, int scancode, int action, int mods);
+		void FrameBufferSizeCallback(int width, int height);
+
 		vkWindow* GetWindow();
 		vkDevice* GetDevice() const;
 		vkPipelineManager* GetPipelineManager();
 		const VkInstance& GetVulkanInstance() const;
-		const VkSurfaceKHR& GetSurface() const;
+		const VkSurfaceKHR& GetWindowSurface() const;
+		const VkRect2D& GetWindowSize() const { return m_WindowSize; }
 
 		void AddQuadToScene();
 
 	private:
 		static const vkEngine* m_pvkEngine;
 
-		vkWindow* m_pvkWindow;
+		vkWindow* m_pWindow;
+		VkRect2D m_WindowSize;
+		VkSurfaceKHR m_WindowSurface;
 		vkDevice* m_pvkDevice;
 		VkInstance m_vkInstance;
-		VkSurfaceKHR m_vkSurface;
 		bool m_bEngineRunning;
 		vkPipelineManager* m_pvkPipelineManager;
 		vkResourcePool* m_pResourcePool;
@@ -60,9 +67,11 @@ namespace vk
 		vkScene* m_pMainScene;
 		uint32_t m_MainSceneId;
 
+		bool m_IsMouseDragging;
+
 		bool InitializeWindow();
 		bool InitializeVulkan();
-		bool CreateSurface();
+		bool CreateWindowSurface();
 		bool InitializeDevice();
 		bool InitializePipelineManager();
 		bool CreateFrameBuffers();

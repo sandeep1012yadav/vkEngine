@@ -7,11 +7,8 @@ namespace vk
 	class vkDevice
 	{
 	public:
-		
-
 		vkDevice(const VkInstance vkInstance, vkEngine* pEngine);
 		~vkDevice();
-
 
 		const VkDevice& GetLogicalDevice() const { return m_vkDevice; }
 		const VkSwapchainKHR& GetSwapChain() const { return m_vkSwapchain; };

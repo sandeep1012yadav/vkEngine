@@ -24,28 +24,30 @@ namespace vk
 						*******************************************************";
 		vk::vkLog->Log(s);
 
-		m_pvkWindow = nullptr;
+		m_pWindow = nullptr;
 		m_pvkDevice = nullptr;
 		m_pvkPipelineManager = nullptr;
 		m_pRenderer = nullptr;
+		m_IsMouseDragging = false;
+		
 		if (InitializeWindow() == false)
 		{
 			vkLog->Log("Window initialization failed...");
 			return;
 		}
-		
+
 		if (InitializeVulkan() == false)
 		{
 			vkLog->Log("Vulkan initialization failed...");
 			return;
 		}
 
-		if (CreateSurface() == false)
+		if (CreateWindowSurface() == false)
 		{
-			vkLog->Log("Creation Win32 Surface Failed");
+			vkLog->Log("Window surface creation failed...");
 			return;
 		}
-
+		
 		if (InitializeDevice() == false)
 		{
 			vkLog->Log("Device initialization failed...");
@@ -84,20 +86,19 @@ namespace vk
 
 	vkEngine::~vkEngine()
 	{
-		vkDestroyInstance(m_vkInstance, nullptr);
-		delete m_pvkWindow;
-
+		delete m_pWindow;
 		delete m_pvkPipelineManager;
 		delete m_pvkDevice;
-
+		
 		vkDestroyFence(m_pvkDevice->GetLogicalDevice(), m_vkWaitFence, NULL);
 		vkDestroySemaphore(m_pvkDevice->GetLogicalDevice(), m_vkRenderCompletedSemaphore, NULL);
 		vkDestroySemaphore(m_pvkDevice->GetLogicalDevice(), m_vkPresentCompletedSemaphore, NULL);
+		vkDestroyInstance(m_vkInstance, nullptr);
 	}
 
 	vkWindow* vkEngine::GetWindow()
 	{
-		return m_pvkWindow;
+		return m_pWindow;
 	}
 
 	vkDevice* vkEngine::GetDevice() const
@@ -114,14 +115,17 @@ namespace vk
 	{
 		return m_vkInstance;
 	}
-	const VkSurfaceKHR& vkEngine::GetSurface() const
+	const VkSurfaceKHR& vkEngine::GetWindowSurface() const
 	{
-		return m_vkSurface;
+		return m_WindowSurface;
 	}
 
 	bool vkEngine::InitializeWindow()
 	{
-		m_pvkWindow = new vkWindow(1600, 900, std::string("Vulkan Engine"), this);
+		m_WindowSize.offset = { 50, 50 };
+		m_WindowSize.extent = { 1600, 900 };
+		m_pWindow = new vkWindow(this, m_WindowSize, std::string("Vulkan Engine"));
+		
 		return true;
 	}
 
@@ -141,7 +145,7 @@ namespace vk
 
 		uint32_t glfwExtensionCount = 0;
 		const char** glfwExtensions;
-		glfwExtensions = m_pvkWindow->GetRequiredInstanceExtensions(&glfwExtensionCount);
+		glfwExtensions = m_pWindow->GetRequiredInstanceExtensions(&glfwExtensionCount);
 
 		createInfo.enabledExtensionCount = glfwExtensionCount;
 		createInfo.ppEnabledExtensionNames = glfwExtensions;
@@ -165,9 +169,10 @@ namespace vk
 		return true;
 	}
 
-	bool vkEngine::CreateSurface()
+	bool vkEngine::CreateWindowSurface()
 	{
-		return m_pvkWindow->CreateWin32Surface(&m_vkSurface);
+		m_WindowSurface = m_pWindow->CreateWin32Surface();
+		return true;
 	}
 
 	bool vkEngine::InitializeDevice()
@@ -313,8 +318,8 @@ namespace vk
 
 
 		VkViewport viewport{};
-		viewport.height = swapChainExtent.height;
-		viewport.width = swapChainExtent.width;
+		viewport.height = static_cast<float>(swapChainExtent.height);
+		viewport.width = static_cast<float>(swapChainExtent.width);
 		viewport.minDepth = (float)0.0f;
 		viewport.maxDepth = (float)1.0f;
 		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
@@ -358,25 +363,25 @@ namespace vk
 	void vkEngine::AddQuadToScene()
 	{
 		vkVertex v1 = {
-			{-10.0f, 0.0f, 0.0f, 0.0f},
+			{-50.0f, 0.0f, -50.0f, 0.0f},
 			{0.0f, 0.0f},
 			{1.0f, 0.0f, 0.0f}
 		};
 
 		vkVertex v2 = {
-			{10.0f, 0.0f, 0.0f, 0.0f},
+			{50.0f, 0.0f, -50.0f, 0.0f},
 			{0.0f, 0.0f},
 			{1.0f, 0.0f, 0.0f}
 		};
 
 		vkVertex v3 = {
-			{10.0f, 0.0f, 10.0f, 0.0f},
+			{50.0f, 0.0f, 50.0f, 0.0f},
 			{0.0f, 0.0f},
 			{1.0f, 0.0f, 0.0f}
 		};
 
 		vkVertex v4 = {
-			{-10.0f, 0.0f, 10.0f, 0.0f},
+			{-50.0f, 0.0f, 50.0f, 0.0f},
 			{0.0f, 0.0f},
 			{1.0f, 0.0f, 0.0f}
 		};
@@ -415,7 +420,7 @@ namespace vk
 		auto startTime = std::chrono::high_resolution_clock::now();
 		while (m_bEngineRunning)
 		{
-			if (m_pvkWindow->WindowShouldClose())
+			if (m_pWindow->WindowShouldClose())
 			{
 				m_bEngineRunning = false;
 				break;
@@ -428,7 +433,7 @@ namespace vk
 			Process(timeElapsed);
 			Render(timeElapsed);
 				
-			m_pvkWindow->PollEvents();
+			m_pWindow->PollEvents();
 			Sleep(20);
 		}
 		return true;
@@ -438,5 +443,21 @@ namespace vk
 	{
 		m_bEngineRunning = false;
 		return true;
+	}
+
+	void vkEngine::CursorPosCallback(double xPos, double yPos)
+	{
+	}
+
+	void vkEngine::MouseButtonCallback(int button, int action, int mods)
+	{
+	}
+
+	void vkEngine::KeyCallback(int key, int scancode, int action, int mods)
+	{
+	}
+
+	void vkEngine::FrameBufferSizeCallback(int width, int height)
+	{
 	}
 }

@@ -2,7 +2,6 @@
 #include "vkDevice.h"
 #include "vkLogger.h"
 #include "vkEngine.h"
-#include "vkWindow.h"
 #include "vkPipelineManager.h"
 #include "vkMesh.h"
 namespace vk
@@ -129,7 +128,7 @@ namespace vk
 				m_vkQueueFamilyIndices.graphicsFamilyIndex = index;
 			}
 			VkBool32 presentSupport = false;
-			vkGetPhysicalDeviceSurfaceSupportKHR(m_vkPhysicalDevice, index, m_pvkEngine->GetSurface(), &presentSupport);
+			vkGetPhysicalDeviceSurfaceSupportKHR(m_vkPhysicalDevice, index, m_pvkEngine->GetWindowSurface(), &presentSupport);
 			if (!m_vkQueueFamilyIndices.presentFamilyIndex.has_value() && presentSupport)
 			{
 				vkLog->Log(">>>>>>>>>>>>>>>>>>>>>This queue is present queue");
@@ -222,20 +221,20 @@ namespace vk
 	vkDevice::SwapChainSupportDetails vkDevice::QuerySwapChainSupportDetails()
 	{
 		SwapChainSupportDetails details;
-		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_vkPhysicalDevice, m_pvkEngine->GetSurface(), &details.surfaceCapabilities);
+		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_vkPhysicalDevice, m_pvkEngine->GetWindowSurface(), &details.surfaceCapabilities);
 		uint32_t surfaceFormatCount = 0;
-		vkGetPhysicalDeviceSurfaceFormatsKHR(m_vkPhysicalDevice, m_pvkEngine->GetSurface(), &surfaceFormatCount, nullptr);
+		vkGetPhysicalDeviceSurfaceFormatsKHR(m_vkPhysicalDevice, m_pvkEngine->GetWindowSurface(), &surfaceFormatCount, nullptr);
 		if (surfaceFormatCount != 0)
 		{
 			details.surfaceFormats.resize(surfaceFormatCount);
-			vkGetPhysicalDeviceSurfaceFormatsKHR(m_vkPhysicalDevice, m_pvkEngine->GetSurface(), &surfaceFormatCount, details.surfaceFormats.data());
+			vkGetPhysicalDeviceSurfaceFormatsKHR(m_vkPhysicalDevice, m_pvkEngine->GetWindowSurface(), &surfaceFormatCount, details.surfaceFormats.data());
 		}
 		uint32_t presentModeCount = 0;
-		vkGetPhysicalDeviceSurfacePresentModesKHR(m_vkPhysicalDevice, m_pvkEngine->GetSurface(), &presentModeCount, nullptr);
+		vkGetPhysicalDeviceSurfacePresentModesKHR(m_vkPhysicalDevice, m_pvkEngine->GetWindowSurface(), &presentModeCount, nullptr);
 		if (presentModeCount != 0)
 		{
 			details.presentMode.resize(presentModeCount);
-			vkGetPhysicalDeviceSurfacePresentModesKHR(m_vkPhysicalDevice, m_pvkEngine->GetSurface(), &presentModeCount, details.presentMode.data());
+			vkGetPhysicalDeviceSurfacePresentModesKHR(m_vkPhysicalDevice, m_pvkEngine->GetWindowSurface(), &presentModeCount, details.presentMode.data());
 		}
 		return details;
 	}
@@ -263,10 +262,9 @@ namespace vk
 		}
 		else
 		{
-			int width, height;
-			m_pvkEngine->GetWindow()->GetFrameBufferSize(&width, &height);
-			m_vkSwapChainExtent.height = static_cast<uint32_t>(height);
-			m_vkSwapChainExtent.width = static_cast<uint32_t>(width);
+			VkRect2D windowSize = m_pvkEngine->GetWindowSize();
+			m_vkSwapChainExtent.height = static_cast<uint32_t>(windowSize.extent.height);
+			m_vkSwapChainExtent.width = static_cast<uint32_t>(windowSize.extent.width);
 
 			m_vkSwapChainExtent.height = std::clamp(m_vkSwapChainExtent.height, m_vkSwapChainSupportDetails.surfaceCapabilities.minImageExtent.height,
 				m_vkSwapChainSupportDetails.surfaceCapabilities.maxImageExtent.height);
@@ -328,7 +326,7 @@ namespace vk
 
 		VkSwapchainCreateInfoKHR vkSwapchainCreateInfo{};
 		vkSwapchainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-		vkSwapchainCreateInfo.surface = m_pvkEngine->GetSurface();
+		vkSwapchainCreateInfo.surface = m_pvkEngine->GetWindowSurface();
 		vkSwapchainCreateInfo.imageExtent = m_vkSwapChainExtent;
 		vkSwapchainCreateInfo.imageFormat = m_vkSwapChainSurfaceFormat.format;
 		vkSwapchainCreateInfo.imageColorSpace = m_vkSwapChainSurfaceFormat.colorSpace;
