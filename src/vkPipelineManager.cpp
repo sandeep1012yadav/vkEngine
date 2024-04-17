@@ -105,11 +105,12 @@ namespace vk
 		return bResult;
 	}
 
-	const std::vector<VkDescriptorSetLayout>& vkPipelineManager::GetDescriptorSetLayouts(ePipeline pipeline)
+	const std::vector<VkDescriptorSetLayout>& vkPipelineManager::GetDescriptorSetLayouts(ePipeline pipeline) const
 	{
-		if (m_vkDescriptorSetLayoutsMap.find(pipeline) != m_vkDescriptorSetLayoutsMap.end())
+		auto it = m_vkDescriptorSetLayoutsMap.find(pipeline);
+		if (it != m_vkDescriptorSetLayoutsMap.end())
 		{
-			return m_vkDescriptorSetLayoutsMap[pipeline];
+			return it->second;
 		}
 		return {}; // return empty vector
 	}
@@ -138,11 +139,12 @@ namespace vk
 		return bResult;
 	}
 
-	const VkPipelineLayout& vkPipelineManager::GetPipelineLayout(ePipeline pipeline)
+	const VkPipelineLayout& vkPipelineManager::GetPipelineLayout(ePipeline pipeline) const
 	{
-		if (m_vkPipelineLayoutMap.find(pipeline) != m_vkPipelineLayoutMap.end())
+		auto it = m_vkPipelineLayoutMap.find(pipeline);
+		if (it != m_vkPipelineLayoutMap.end())
 		{
-			return m_vkPipelineLayoutMap[pipeline];
+			return it->second;
 		}
 		return nullptr;
 	}
@@ -239,11 +241,12 @@ namespace vk
 		return bStatus;
 	}
 
-	const VkRenderPass& vkPipelineManager::GetRenderPass(eRenderPass renderPass)
+	const VkRenderPass& vkPipelineManager::GetRenderPass(eRenderPass renderPass) const
 	{
-		if (m_vkRenderPasses.find(renderPass) != m_vkRenderPasses.end())
+		auto it = m_vkRenderPasses.find(renderPass);
+		if (it != m_vkRenderPasses.end())
 		{
-			return m_vkRenderPasses[renderPass];
+			return it->second;
 		}
 
 		return nullptr;
@@ -330,11 +333,12 @@ namespace vk
 		return bStatus;
 	}
 
-	const VkPipeline& vkPipelineManager::GetPipeline(ePipeline pipeline)
+	const VkPipeline& vkPipelineManager::GetPipeline(ePipeline pipeline) const
 	{
-		if (m_vkPipelineMap.find(pipeline) != m_vkPipelineMap.end())
+		auto it = m_vkPipelineMap.find(pipeline);
+		if (it != m_vkPipelineMap.end())
 		{
-			return m_vkPipelineMap[pipeline];
+			return it->second;
 		}
 		return nullptr;
 	}

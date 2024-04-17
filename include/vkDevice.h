@@ -3,6 +3,7 @@
 namespace vk
 {
 	class vkEngine;
+	struct vkVertex;
 	class vkDevice
 	{
 	public:
@@ -12,21 +13,26 @@ namespace vk
 		~vkDevice();
 
 
-		const VkDevice& GetLogicalDevice() { return m_vkDevice; }
-		const VkSwapchainKHR& GetSwapChain() { return m_vkSwapchain; };
-		const VkFormat& GetSwapChainImageFormat() { return m_vkSwapChainSurfaceFormat.format; }
-		const VkFormat& GetDepthStencilFormat() { return m_vkDepthStencilBuffer.format; }
-		const VkExtent2D& GetSwapChainExtent() { return m_vkSwapChainExtent; }
-		const std::vector<VkImage>& GetSwapChainImages() { return m_vkSwapChainImages; }
-		const std::vector<VkFramebuffer>& GetFrameBuffers() { return m_vkFrameBuffers; };
-		const VkCommandBuffer& GetCommandBuffers() { return m_vkCommandBuffer; };
-		const VkQueue& GetGraphicsQueue() { return m_vkGraphicsQueue; }
-		const VkQueue& GetPresentQueue() { return m_vkPresentQueue; }
+		const VkDevice& GetLogicalDevice() const { return m_vkDevice; }
+		const VkSwapchainKHR& GetSwapChain() const { return m_vkSwapchain; };
+		const VkFormat& GetSwapChainImageFormat() const { return m_vkSwapChainSurfaceFormat.format; }
+		const VkFormat& GetDepthStencilFormat() const { return m_vkDepthStencilBuffer.format; }
+		const VkExtent2D& GetSwapChainExtent() const { return m_vkSwapChainExtent; }
+		const std::vector<VkImage>& GetSwapChainImages() const { return m_vkSwapChainImages; }
+		const std::vector<VkFramebuffer>& GetFrameBuffers() const { return m_vkFrameBuffers; };
+		const VkCommandBuffer& GetCommandBuffers() const { return m_vkCommandBuffer; };
+		const VkQueue& GetGraphicsQueue() const { return m_vkGraphicsQueue; }
+		const VkQueue& GetPresentQueue() const { return m_vkPresentQueue; }
 
-		uint32_t FindMemoryType(const VkMemoryRequirements& suitableMemRequirements, const VkMemoryPropertyFlags& preferredMemType);
-		VkFormat GetSupportedDepthFormat();
+		uint32_t FindMemoryType(const VkMemoryRequirements& suitableMemRequirements, const VkMemoryPropertyFlags& preferredMemType) const;
+		VkFormat GetSupportedDepthFormat() const;
 		bool CreateFrameBuffers();
 		bool CreateCommandBuffers();
+
+		bool CopyBuffer(const VkBuffer& stagingBuffer, const VkBuffer& vertexBuffer, const uint32_t& bufferSize) const;
+		bool CreateBuffer(const VkDeviceSize& bufferSize, const VkBufferUsageFlags& usage, const VkMemoryPropertyFlags& preferredMemType, VkBuffer& buffer, VkDeviceMemory& bufferMemory) const;
+		bool CreateVertexBuffer(const uint32_t nbVertices, const vkVertex* vertices, VkBuffer& vertexBuffer, VkDeviceMemory& vertexBufferMemory) const;
+		bool CreateIndexBuffer(const uint32_t nbIndices, const uint32_t* indices, VkBuffer& indexBuffer, VkDeviceMemory& indexBufferMemory) const;
 
 	private:
 		struct QueueFamilyIndices
@@ -80,6 +86,8 @@ namespace vk
 		bool CreateSwapChain();
 		
 		VkResult CreateDepthStencilBuffer();
+
+		
 	};
 
 	

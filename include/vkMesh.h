@@ -1,6 +1,6 @@
 #pragma once
 #include "vkCore.h"
-#include "glm/glm.hpp"
+#include "vkObject.h"
 
 namespace vk
 {
@@ -29,4 +29,24 @@ namespace vk
 			return vertexAttributeDesc;
 		}
 	};
+
+	class vkMesh : public vkObject
+	{
+	public:
+		vkMesh();
+		explicit vkMesh(const std::string name);
+		~vkMesh();
+
+		uint32_t mNbVertices;
+		vkVertex* m_pVertices;
+
+		uint32_t mNbIndices;
+		uint32_t* m_pIndices;
+
+		uint32_t mStartVertexLocation;
+		uint32_t mStartIndexLocation;
+
+	};
+
+	
 }

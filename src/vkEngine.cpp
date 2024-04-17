@@ -5,14 +5,29 @@
 #include "vkWindow.h"
 #include "vkDevice.h"
 #include "vkPipelineManager.h"
-#include <vector>
+#include "vkResourcePool.h"
+#include "vkMesh.h"
+#include "vkFrameObject.h"
+#include "vkGameObject.h"
+#include "vkScene.h"
+#include "vkRenderer.h"
 namespace vk
 {
+	const vkEngine* vkEngine::m_pvkEngine = nullptr;
+
 	vkEngine::vkEngine()
 	{
+		std::string s = "\
+						*******************************************************\n\
+						****************Welcome To Vulkan Engine***************\n\
+						*******************************************************\n\
+						*******************************************************";
+		vk::vkLog->Log(s);
+
 		m_pvkWindow = nullptr;
 		m_pvkDevice = nullptr;
 		m_pvkPipelineManager = nullptr;
+		m_pRenderer = nullptr;
 		if (InitializeWindow() == false)
 		{
 			vkLog->Log("Window initialization failed...");
@@ -57,7 +72,14 @@ namespace vk
 			vkLog->Log("SynchronizationPrimitives creation failed...");
 		}
 
+		if (CreateResourcePool() == false)
+		{
+			vkLog->Log("Resource Pool creation failed...");
+		}
+
 		m_bEngineRunning = false;
+
+		SetInstance(this);
 	}
 
 	vkEngine::~vkEngine()
@@ -77,7 +99,8 @@ namespace vk
 	{
 		return m_pvkWindow;
 	}
-	vkDevice* vkEngine::GetDevice()
+
+	vkDevice* vkEngine::GetDevice() const
 	{
 		return m_pvkDevice;
 	}
@@ -87,7 +110,7 @@ namespace vk
 		return m_pvkPipelineManager;
 	}
 
-	const VkInstance& vkEngine::GetInstance() const
+	const VkInstance& vkEngine::GetVulkanInstance() const
 	{
 		return m_vkInstance;
 	}
@@ -202,6 +225,54 @@ namespace vk
 		return bStatus;
 	}
 
+	bool vkEngine::CreateResourcePool()
+	{
+		bool bStatus = true;
+		m_pResourcePool = vkResourcePool::GetInstance();
+		vkLog->Log("Resource Pool created...");
+		return bStatus;
+	}
+
+	vkScene* vkEngine::CreateScene()
+	{
+		vkScene* pScene = new vkScene("noName", this);
+		return pScene;
+	}
+
+	vkScene* vkEngine::CreateScene(const std::string& sceneName)
+	{
+		vkScene* pScene = new vkScene(sceneName, this);
+		return pScene;
+	}
+
+	uint32_t vkEngine::AddScene(vkScene* pScene, bool isMainScene)
+	{
+		uint32_t sceneId = static_cast<uint32_t>(m_vScenes.size());
+		m_vScenes.push_back(pScene);
+		if (isMainScene)
+		{
+			m_MainSceneId = sceneId;
+			m_pMainScene = pScene;
+		}
+		return sceneId;
+	}
+
+	vkScene* vkEngine::GetScene(uint32_t sceneId) const
+	{
+		return m_vScenes[sceneId];
+	}
+
+	vkScene* vkEngine::GetMainScene() const
+	{
+		return m_pMainScene;
+	}
+
+	void vkEngine::SetMainScene(uint32_t sceneId)
+	{
+		m_MainSceneId = sceneId;
+		m_pMainScene = m_vScenes[m_MainSceneId];
+	}
+
 	void vkEngine::Process(float fTimeElapsed)
 	{
 
@@ -221,39 +292,28 @@ namespace vk
 
 		uint32_t imageIndex;
 		result = vkAcquireNextImageKHR(vkDevice, swapChain, UINT64_MAX, m_vkPresentCompletedSemaphore, VK_NULL_HANDLE, &imageIndex);
-
-
 		// Record command buffer with the current image as attachment in the framebuffer
 		vkResetCommandBuffer(commandBuffer, 0);
-		//recordCommandBuffer(commandBuffers[currentFrame], imageIndex);
-		//
-		// 
-		// 
-		VkCommandBufferBeginInfo cmdBufInfo{};
-		cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+
+		VkCommandBufferBeginInfo cmdBufInfo = vk::initializers::CommandBufferBeginInfo(0);
 
 		// Set clear values for all framebuffer attachments with loadOp set to clear
 		// We use two attachments (color and depth) that are cleared at the start of the subpass and as such we need to set clear values for both
 		VkClearValue clearValues[2];
-		clearValues[0].color = { { 0.0f, 0.0f, 0.2f, 1.0f } };
+		clearValues[0].color = { { 0.2f, 0.2f, 0.5f, 1.0f } };
 		clearValues[1].depthStencil = { 1.0f, 0 };
 
-		VkRenderPassBeginInfo renderPassBeginInfo{};
-		renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		renderPassBeginInfo.pNext = nullptr;
-		renderPassBeginInfo.renderPass = renderPass;
-		renderPassBeginInfo.renderArea.offset.x = 0;
-		renderPassBeginInfo.renderArea.offset.y = 0;
-		renderPassBeginInfo.renderArea.extent.width = swapChainExtent.width;
-		renderPassBeginInfo.renderArea.extent.height = swapChainExtent.height;
-		renderPassBeginInfo.clearValueCount = 2;
-		renderPassBeginInfo.pClearValues = clearValues;
-		renderPassBeginInfo.framebuffer = vFrameBuffers[imageIndex];
+		VkRect2D renderArea = { {0, 0}, {swapChainExtent.width, swapChainExtent.height} };
+		VkRenderPassBeginInfo renderPassBeginInfo =  vk::initializers::RenderPassBeginInfo(renderPass, renderArea, 2, clearValues, vFrameBuffers[imageIndex]);
 
 		//const VkCommandBuffer commandBuffer = commandBuffers[currentFrame];
 		vkBeginCommandBuffer(commandBuffer, &cmdBufInfo);
 
 		vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+
+		m_pRenderer->RenderScene(commandBuffer, fTimeElapsed);
+
 
 		vkCmdEndRenderPass(commandBuffer);
 
@@ -263,45 +323,79 @@ namespace vk
 		
 		
 		// Submit the command buffer
-		VkSubmitInfo submitInfo = {};
-		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-
-		VkSemaphore waitSemaphores[] = { m_vkPresentCompletedSemaphore };
-		submitInfo.waitSemaphoreCount = 1;
-		submitInfo.pWaitSemaphores = waitSemaphores;
-
-		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-		submitInfo.pWaitDstStageMask = waitStages;
-
-		submitInfo.commandBufferCount = 1;
-		submitInfo.pCommandBuffers = &commandBuffer;
-
-		VkSemaphore renderCompletedSemaphores[] = { m_vkRenderCompletedSemaphore };
-		submitInfo.signalSemaphoreCount = 1;
-		submitInfo.pSignalSemaphores = renderCompletedSemaphores;
+		std::vector<VkCommandBuffer> vCommandBuffers = { commandBuffer };
+		std::vector<VkSemaphore> vWaitSemaphores = { m_vkPresentCompletedSemaphore };
+		std::vector<VkPipelineStageFlags> vWaitStages = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+		std::vector<VkSemaphore> vSignalSemaphores = { m_vkRenderCompletedSemaphore };
+		
+		VkSubmitInfo submitInfo = vk::initializers::SubmitInfo(vCommandBuffers, vWaitSemaphores, vWaitStages, vSignalSemaphores);
 
 		result = vkQueueSubmit(m_pvkDevice->GetGraphicsQueue(), 1, &submitInfo, m_vkWaitFence);
 
 		// Present the image to the swap chain
-		VkPresentInfoKHR presentInfo = {};
-		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-
-		presentInfo.waitSemaphoreCount = 1;
-		presentInfo.pWaitSemaphores = renderCompletedSemaphores;
-
-		VkSwapchainKHR swapChains[] = { swapChain };
-		presentInfo.swapchainCount = 1;
-		presentInfo.pSwapchains = swapChains;
-		presentInfo.pImageIndices = &imageIndex;
-
+		std::vector<VkSwapchainKHR> vSwapchains = { swapChain };
+		VkPresentInfoKHR presentInfo = vk::initializers::PresentInfoKHR(imageIndex, vSignalSemaphores, vSwapchains);
 		result = vkQueuePresentKHR(m_pvkDevice->GetPresentQueue(), &presentInfo);
 		if (result != VK_SUCCESS){
 			vkLog->Log("Presenting to swapchain failed..");
 		}
 	}
 
+	void vkEngine::AddQuadToScene()
+	{
+		vkVertex v1 = {
+			{-10.0f, 0.0f, 0.0f, 0.0f},
+			{0.0f, 0.0f},
+			{1.0f, 0.0f, 0.0f}
+		};
+
+		vkVertex v2 = {
+			{10.0f, 0.0f, 0.0f, 0.0f},
+			{0.0f, 0.0f},
+			{1.0f, 0.0f, 0.0f}
+		};
+
+		vkVertex v3 = {
+			{10.0f, 0.0f, 10.0f, 0.0f},
+			{0.0f, 0.0f},
+			{1.0f, 0.0f, 0.0f}
+		};
+
+		vkVertex v4 = {
+			{-10.0f, 0.0f, 10.0f, 0.0f},
+			{0.0f, 0.0f},
+			{1.0f, 0.0f, 0.0f}
+		};
+
+		std::vector<vkVertex> quadVertices = { v1, v2, v3, v4 };
+		std::vector<uint32_t> quadIndices = { 0, 1, 2, 0, 3, 2 };
+
+		vkMesh* pMesh = new vkMesh("QuadMesh");
+		pMesh->mNbVertices = static_cast<uint32_t>(quadVertices.size());
+		pMesh->m_pVertices = vk::tools::CopyVector(quadVertices);
+
+		vkVertex v = pMesh->m_pVertices[0];
+		pMesh->mNbIndices = static_cast<uint32_t>(quadIndices.size());
+		pMesh->m_pIndices = vk::tools::CopyVector(quadIndices);
+
+		uint32_t meshIndex = vkResourcePool::GetInstance()->AddMesh(pMesh);
+
+		std::vector<uint32_t> meshVector = { meshIndex };
+
+		vkFrameObject* pFrameObject = new vkFrameObject("QuadFrameObject");
+		pFrameObject->mNbMeshes = 1;
+		pFrameObject->m_pMeshes = vk::tools::CopyVector(meshVector);
+
+		vkGameObject* pGameObject = new vkGameObject("QuadGameObject", pFrameObject);
+		m_pMainScene->AddGameObject(pGameObject);
+	}
+
 	bool vkEngine::StartEngine()
 	{
+		//Preprocessing phase/////
+		m_pRenderer = new vkRenderer(this, m_pvkPipelineManager);
+		//////////////////////////
+
 		m_bEngineRunning = true;
 
 		auto startTime = std::chrono::high_resolution_clock::now();

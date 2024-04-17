@@ -1,6 +1,7 @@
 #pragma once
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
+#include "glm/glm.hpp"
 #include <vector>
 #include <array>
 #include <string>
@@ -23,20 +24,70 @@ namespace vk
 		VkImageView view;
 		VkFormat format;
 	}DepthStencilBuffer;
-	
-	//typedef struct _SwapChainBuffer
-	//{
-	//	VkImage image;
-	//	VkImageView view;
-	//}SwapChainBuffer;
 
 	namespace tools
 	{
 		VkShaderModule CreateShaderModule(const VkDevice& device, const std::string& spirName);
+
+		template<typename T>
+		T* CopyVector(const std::vector<T>& vec)
+		{
+			T* arr = new T[vec.size()];
+			std::copy(vec.begin(), vec.end(), arr);
+			return arr;
+		}
 	};
 
 	namespace initializers
 	{
+		inline VkBufferCreateInfo BufferCreateInfo(
+			const VkDeviceSize& bufferSize,
+			const VkBufferUsageFlags& bufferUsages,
+			const VkSharingMode& sharingMode, 
+			const uint32_t& queueFamilyIndexCount,
+			const uint32_t* pQueueFamilyIndices)
+		{
+			VkBufferCreateInfo bufferCI = {};
+			bufferCI.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+			bufferCI.size = bufferSize;
+			bufferCI.usage = bufferUsages;
+			bufferCI.sharingMode = sharingMode;
+			bufferCI.queueFamilyIndexCount = queueFamilyIndexCount;
+			bufferCI.pQueueFamilyIndices = pQueueFamilyIndices;
+
+			return bufferCI;
+		}
+
+		inline VkDescriptorPoolCreateInfo DescriptorPoolCreateInfo(
+			const std::vector<VkDescriptorPoolSize>& poolSizes,
+			const uint32_t& maxSets)
+		{
+			VkDescriptorPoolCreateInfo poolCI{};
+			poolCI.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+			poolCI.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
+			poolCI.pPoolSizes = poolSizes.data();
+			poolCI.maxSets = maxSets;
+			// Optionally, you can set the VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT flag
+			// to allow individual descriptor sets to be freed. By default, all sets are freed when
+			// the pool is destroyed.
+			// poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+
+			return poolCI;
+		}
+
+		inline VkDescriptorSetAllocateInfo DescriptorSetAllocateInfo(
+			const VkDescriptorPool& descriptorPool,
+			const std::vector<VkDescriptorSetLayout>& descriptorSetLayouts)
+		{
+			VkDescriptorSetAllocateInfo allocInfo{};
+			allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+			allocInfo.descriptorPool = descriptorPool;
+			allocInfo.descriptorSetCount = static_cast<uint32_t>(descriptorSetLayouts.size());
+			allocInfo.pSetLayouts = descriptorSetLayouts.data();
+
+			return allocInfo;
+		}
+
 		inline VkImageCreateInfo ImageCreateInfo(
 			const VkImageType& imageType,
 			const VkFormat& format,const VkExtent3D extent,
@@ -378,6 +429,66 @@ namespace vk
 			semaphoreCI.flags = 0; // Reserved for future use
 
 			return semaphoreCI;
+		}
+
+		inline VkCommandBufferBeginInfo CommandBufferBeginInfo(const VkCommandBufferUsageFlags& flag)
+		{
+			VkCommandBufferBeginInfo commandBufferBI = {};
+			commandBufferBI.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+			commandBufferBI.flags = flag;
+
+			return commandBufferBI;
+		}
+
+		inline VkRenderPassBeginInfo RenderPassBeginInfo(
+			const VkRenderPass& renderPass,
+			const VkRect2D& renderArea,
+			const uint32_t& clearValueCount,
+			const VkClearValue clearValues[],
+			const VkFramebuffer& frameBuffer)
+		{
+			VkRenderPassBeginInfo renderPassBI = {};
+			renderPassBI.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+			renderPassBI.renderPass = renderPass;
+			renderPassBI.renderArea = renderArea;
+			renderPassBI.clearValueCount = clearValueCount;
+			renderPassBI.pClearValues = clearValues;//
+			renderPassBI.framebuffer = frameBuffer;
+
+			return renderPassBI;
+		}
+
+		inline VkSubmitInfo SubmitInfo(const std::vector<VkCommandBuffer>& vCommandBuffers,
+			const std::vector<VkSemaphore>& vWaitSemaphores,
+			const std::vector<VkPipelineStageFlags> vWaitDstStageMask,
+			const std::vector<VkSemaphore>& vSignalSemaphores)
+		{
+			VkSubmitInfo submitInfo = {};
+			submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+			submitInfo.commandBufferCount = static_cast<uint32_t>(vCommandBuffers.size());
+			submitInfo.pCommandBuffers = vCommandBuffers.data();
+			submitInfo.waitSemaphoreCount = static_cast<uint32_t>(vWaitSemaphores.size());
+			submitInfo.pWaitSemaphores = vWaitSemaphores.data();
+			submitInfo.pWaitDstStageMask = vWaitDstStageMask.data();
+			submitInfo.signalSemaphoreCount = static_cast<uint32_t>(vSignalSemaphores.size());
+			submitInfo.pSignalSemaphores = vSignalSemaphores.data();
+
+			return submitInfo;
+		}
+
+		inline VkPresentInfoKHR PresentInfoKHR(const uint32_t& swapchainImageIndex,
+			const std::vector<VkSemaphore>& vWaitSemaphores,
+			const std::vector<VkSwapchainKHR>& vSwapchains)
+		{
+			VkPresentInfoKHR presentInfo = {};
+			presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+			presentInfo.waitSemaphoreCount = static_cast<uint32_t>(vWaitSemaphores.size());
+			presentInfo.pWaitSemaphores = vWaitSemaphores.data();
+			presentInfo.swapchainCount = static_cast<uint32_t>(vSwapchains.size());
+			presentInfo.pSwapchains = vSwapchains.data();
+			presentInfo.pImageIndices = &swapchainImageIndex;
+
+			return presentInfo;
 		}
 
 	}

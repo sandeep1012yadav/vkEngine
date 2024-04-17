@@ -2,9 +2,7 @@
 
 namespace vk
 {
-	vkObject::vkObject()
-	{
-	}
+	
 
 	vkObject::~vkObject()
 	{

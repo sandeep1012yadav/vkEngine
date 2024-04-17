@@ -2,20 +2,20 @@
 
 namespace vk
 {
-	vkTriangle::vkTriangle()
+	/*vkTriangle::vkTriangle()
 	{
 	}
 
 	vkTriangle::~vkTriangle()
 	{
-	}
+	}*/
 
-	void vkTriangle::Process(float fElapsedTime)
-	{
+	//void vkTriangle::Process(float fElapsedTime)
+	//{
 
-	}
-	void vkTriangle::Render(float fElapsedTime)
-	{
+	//}
+	//void vkTriangle::Render(float fElapsedTime)
+	//{
 
-	}
+	//}
 }

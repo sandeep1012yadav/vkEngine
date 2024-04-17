@@ -4,6 +4,7 @@
 #include "vkEngine.h"
 #include "vkWindow.h"
 #include "vkPipelineManager.h"
+#include "vkMesh.h"
 namespace vk
 {
 	vkDevice::vkDevice(const VkInstance vkInstance, vkEngine* pEngine)
@@ -410,7 +411,7 @@ namespace vk
 		return bStatus;
 	}
 
-	VkFormat vkDevice::GetSupportedDepthFormat()
+	VkFormat vkDevice::GetSupportedDepthFormat() const
 	{
 		// Since all depth formats may be optional, we need to find a suitable depth format to use
 		// Start with the highest precision packed format
@@ -435,7 +436,7 @@ namespace vk
 		return VK_FORMAT_UNDEFINED;
 	}
 
-	uint32_t vkDevice::FindMemoryType(const VkMemoryRequirements& suitableMemRequirements, const VkMemoryPropertyFlags& preferredMemType)
+	uint32_t vkDevice::FindMemoryType(const VkMemoryRequirements& suitableMemRequirements, const VkMemoryPropertyFlags& preferredMemType) const
 	{
 		uint32_t selectedMemoryTypeForResource = 0;
 		VkPhysicalDeviceMemoryProperties systemMemProp;
@@ -516,4 +517,143 @@ namespace vk
 		vkLog->Log("Command pool and command buffers created ...");
 		return bStatus;
 	}
+
+	bool vkDevice::CreateBuffer(const VkDeviceSize& bufferSize, const VkBufferUsageFlags& usage, const VkMemoryPropertyFlags& preferredMemType, VkBuffer& buffer, VkDeviceMemory& bufferMemory) const
+	{
+		bool bStatus = true;
+		VkBufferCreateInfo bufferInfo = vk::initializers::BufferCreateInfo(bufferSize, usage, VK_SHARING_MODE_EXCLUSIVE, 0, nullptr);
+		
+		VkResult result = vkCreateBuffer(m_vkDevice, &bufferInfo, nullptr, &buffer);
+		if ( result != VK_SUCCESS ) {
+			vkLog->Log("Buffer creation failed ...");
+			bStatus = false;
+		}
+
+		VkMemoryRequirements memRequirements;
+		vkGetBufferMemoryRequirements(m_vkDevice, buffer, &memRequirements);
+
+		VkMemoryAllocateInfo allocInfo{};
+		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+		allocInfo.allocationSize = memRequirements.size;
+		allocInfo.memoryTypeIndex = FindMemoryType(memRequirements, preferredMemType);
+		
+		result = vkAllocateMemory(m_vkDevice, &allocInfo, nullptr, &bufferMemory);
+		if ( result != VK_SUCCESS ) {
+			vkLog->Log("Buffer memory creation failed ...");
+			bStatus = false;
+		}
+
+		result = vkBindBufferMemory(m_vkDevice, buffer, bufferMemory, 0);
+		if (result != VK_SUCCESS) {
+			vkLog->Log("Binding buffer to memory failed ...");
+			bStatus = false;
+		}
+
+		return bStatus;
+	}
+
+	bool vkDevice::CopyBuffer(const VkBuffer& stagingBuffer, const VkBuffer& vertexBuffer, const uint32_t& bufferSize) const
+	{
+		bool bStatus = true;
+		// Allocate a temporary command buffer for the copy operation
+		VkCommandBufferAllocateInfo allocInfo = vk::initializers::CommandBufferAllocateInfo(m_vkCommandPool, VK_COMMAND_BUFFER_LEVEL_PRIMARY, 1);
+		VkCommandBuffer commandBuffer;
+		vkAllocateCommandBuffers(m_vkDevice, &allocInfo, &commandBuffer);
+
+		// Begin recording the command buffer
+		VkCommandBufferBeginInfo beginInfo = vk::initializers::CommandBufferBeginInfo(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+		vkBeginCommandBuffer(commandBuffer, &beginInfo);
+
+		// Specify the copy operation
+		VkBufferCopy copyRegion{};
+		copyRegion.size = bufferSize;
+		vkCmdCopyBuffer(commandBuffer, stagingBuffer, vertexBuffer, 1, &copyRegion);
+
+		// End recording the command buffer
+		vkEndCommandBuffer(commandBuffer);
+
+		// Submit the command buffer to the graphics queue
+		VkSubmitInfo submitInfo{};
+		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+		submitInfo.commandBufferCount = 1;
+		submitInfo.pCommandBuffers = &commandBuffer;
+
+		VkResult result = vkQueueSubmit(m_vkGraphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+		result = vkQueueWaitIdle(m_vkGraphicsQueue); // Wait for the copy to finish
+
+		// Free the command buffer
+		vkFreeCommandBuffers(m_vkDevice, m_vkCommandPool, 1, &commandBuffer);
+
+		if (result != VK_SUCCESS) {
+			vkLog->Log("Copy Buffer failed ...");
+			bStatus = false;
+		}
+
+		return bStatus;
+	}
+
+	bool vkDevice::CreateVertexBuffer(const uint32_t nbVertices, const vkVertex* vertices, VkBuffer& vertexBuffer, VkDeviceMemory& vertexBufferMemory) const
+	{
+		bool bStatus = true;
+		VkDeviceSize bufferSize = sizeof(vertices[0]) * nbVertices;
+
+		// Temporary buffer for staging
+		VkBuffer stagingBuffer;
+		VkDeviceMemory stagingBufferMemory;
+		bStatus = CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+			stagingBuffer, stagingBufferMemory);
+
+		// Map memory and copy vertex data
+		void* data;
+		vkMapMemory(m_vkDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
+		memcpy(data, vertices, (size_t)bufferSize);
+		vkUnmapMemory(m_vkDevice, stagingBufferMemory);
+
+		// Create the vertex buffer with the VK_BUFFER_USAGE_TRANSFER_DST_BIT to receive data
+		bStatus = CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory);
+
+		// Copy data from staging buffer to vertex buffer
+		bStatus = CopyBuffer(stagingBuffer, vertexBuffer, static_cast<uint32_t>(bufferSize));
+
+		// Clean up staging buffer
+		vkDestroyBuffer(m_vkDevice, stagingBuffer, nullptr);
+		vkFreeMemory(m_vkDevice, stagingBufferMemory, nullptr);
+
+		return bStatus;
+	}
+
+	bool vkDevice::CreateIndexBuffer(const uint32_t nbIndices, const uint32_t* indices, VkBuffer& indexBuffer, VkDeviceMemory& indexBufferMemory) const
+	{
+		bool bStatus = true;
+		VkDeviceSize bufferSize = sizeof(uint32_t) * nbIndices;
+
+		// Temporary buffer for staging
+		VkBuffer stagingBuffer;
+		VkDeviceMemory stagingBufferMemory;
+		bStatus = CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+			stagingBuffer, stagingBufferMemory);
+
+		// Map memory and copy vertex data
+		void* data;
+		vkMapMemory(m_vkDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
+		memcpy(data, indices, (size_t)bufferSize);
+		vkUnmapMemory(m_vkDevice, stagingBufferMemory);
+
+		// Create the vertex buffer with the VK_BUFFER_USAGE_TRANSFER_DST_BIT to receive data
+		bStatus = CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer, indexBufferMemory);
+
+		// Copy data from staging buffer to vertex buffer
+		bStatus = CopyBuffer(stagingBuffer, indexBuffer, static_cast<uint32_t>(bufferSize));
+
+		// Clean up staging buffer
+		vkDestroyBuffer(m_vkDevice, stagingBuffer, nullptr);
+		vkFreeMemory(m_vkDevice, stagingBufferMemory, nullptr);
+
+		return bStatus;
+	}
+	
 }

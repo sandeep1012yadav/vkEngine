@@ -35,6 +35,24 @@
     <ClCompile Include="src\vkTriangle.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\vkObjectManager.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\vkFrameObject.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\vkResourcePool.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\vkGameObject.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\vkScene.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\vkRenderer.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\vkCamera.h">
@@ -74,6 +92,24 @@
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="include\vkTriangle.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vkObjectManager.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vkFrameObject.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vkResourcePool.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vkGameObject.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vkScene.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vkRenderer.h">
       <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>

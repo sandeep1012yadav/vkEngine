@@ -46,7 +46,7 @@ namespace vk
 		createSurfaceInfo.hwnd = glfwGetWin32Window(m_pWindow);
 		createSurfaceInfo.hinstance = GetModuleHandle(nullptr);
 
-		if (vkCreateWin32SurfaceKHR(m_pvkEngine->GetInstance(), &createSurfaceInfo, nullptr, surface) != VK_SUCCESS)
+		if (vkCreateWin32SurfaceKHR(m_pvkEngine->GetVulkanInstance(), &createSurfaceInfo, nullptr, surface) != VK_SUCCESS)
 		{
 			return false;
 		}

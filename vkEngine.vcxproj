@@ -74,6 +74,11 @@
     <IncludePath>$(VULKAN_SDK)\Include;$(IncludePath)</IncludePath>
     <LibraryPath>$(VULKAN_SDK)\Lib;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>$(VULKAN_SDK)\Include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(VULKAN_SDK)\Lib;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(LibraryPath)</LibraryPath>
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -121,6 +126,10 @@
     <PreBuildEvent>
       <Command>C:\MyWorkspace\VulkanEngine\vkEngine\glsl_to_spir-v.bat</Command>
     </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>mkdir "$(TargetDir)resources"
+xcopy "$(ProjectDir)resources" "$(TargetDir)resources" /E /I /Y</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -130,24 +139,38 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>.\thirdpartylibraries\glfw-3.3.8.bin.WIN64\include;.\include</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>.\thirdpartylibraries\glfw-3.3.8.bin.WIN64\lib-vc2022</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glfw3.lib;vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>mkdir "$(TargetDir)resources"
+xcopy "$(ProjectDir)resources" "$(TargetDir)resources" /E /I /Y</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\vkCamera.cpp" />
     <ClCompile Include="src\vkCore.cpp" />
     <ClCompile Include="src\vkDevice.cpp" />
     <ClCompile Include="src\vkEngine.cpp" />
+    <ClCompile Include="src\vkFrameObject.cpp" />
+    <ClCompile Include="src\vkGameObject.cpp" />
     <ClCompile Include="src\vkLogger.cpp" />
     <ClCompile Include="src\vkMesh.cpp" />
     <ClCompile Include="src\vkObject.cpp" />
+    <ClCompile Include="src\vkObjectManager.cpp" />
     <ClCompile Include="src\vkPipeline.cpp" />
     <ClCompile Include="src\vkPipelineManager.cpp" />
+    <ClCompile Include="src\vkRenderer.cpp" />
+    <ClCompile Include="src\vkResourcePool.cpp" />
+    <ClCompile Include="src\vkScene.cpp" />
     <ClCompile Include="src\vkTriangle.cpp" />
     <ClCompile Include="src\vkWindow.cpp" />
     <ClCompile Include="vkApp.cpp" />
@@ -158,11 +181,17 @@
     <ClInclude Include="include\vkDescriptorSetLayout.h" />
     <ClInclude Include="include\vkDevice.h" />
     <ClInclude Include="include\vkEngine.h" />
+    <ClInclude Include="include\vkFrameObject.h" />
+    <ClInclude Include="include\vkGameObject.h" />
     <ClInclude Include="include\vkLogger.h" />
     <ClInclude Include="include\vkMesh.h" />
     <ClInclude Include="include\vkObject.h" />
+    <ClInclude Include="include\vkObjectManager.h" />
     <ClInclude Include="include\vkPipeline.h" />
     <ClInclude Include="include\vkPipelineManager.h" />
+    <ClInclude Include="include\vkRenderer.h" />
+    <ClInclude Include="include\vkResourcePool.h" />
+    <ClInclude Include="include\vkScene.h" />
     <ClInclude Include="include\vkTriangle.h" />
     <ClInclude Include="include\vkWindow.h" />
     <ClInclude Include="resources\shaders\scene_global.h" />

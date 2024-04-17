@@ -1,14 +1,18 @@
 //#include <iostream>
 #include "vkEngine.h"
-
+#include "vkScene.h"
 using namespace std;
 
 
 int WinMain()
 {
-	string s = "*******************************************************\n****************Welcome To Vulkan Engine***************\n*******************************************************\n*******************************************************";
-	vk::vkLog->Log(s);
+	
 	vk::vkEngine* pEngine = new vk::vkEngine();
+	vk::vkScene *pScene = pEngine->CreateScene("MainScene");
+
+	pEngine->AddScene(pScene, true);
+
+	pEngine->AddQuadToScene();
 
 	pEngine->StartEngine();
 	pEngine->StopEngine();
