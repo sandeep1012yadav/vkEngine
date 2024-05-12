@@ -1,31 +1,32 @@
 #include "vkCore.h"
+#include "vkGameObject.h"
+#include "vkFrameObject.h"
 #include "vkMesh.h"
 
 namespace vk
 {
-	vkMesh::vkMesh(const std::string name) : vkObject(name, ObjectType::OT_Mesh)
+	vkMesh::vkMesh(const std::string name) : vkObject(name, ObjectType::OT_Mesh), m_pParentGameObject(nullptr)
 	{
-		mNbVertices = 0;
-		m_pVertices = nullptr;
-		mNbIndices = 0;
-		m_pIndices = nullptr;
 		mStartVertexLocation = 0;
+		mNbVertices = 0;
 		mStartIndexLocation = 0;
+		mNbIndices = 0;
 	}
 
-	vkMesh::vkMesh() : vkObject("noName", ObjectType::OT_Mesh)
+	vkMesh::vkMesh() : vkObject("noName", ObjectType::OT_Mesh), m_pParentGameObject(nullptr)
 	{
-		mNbVertices = 0;
-		m_pVertices = nullptr;
-		mNbIndices = 0;
-		m_pIndices = nullptr;
 		mStartVertexLocation = 0;
+		mNbVertices = 0;
 		mStartIndexLocation = 0;
+		mNbIndices = 0;
 	}
 
 	vkMesh::~vkMesh()
 	{
-		delete m_pVertices;
-		delete m_pIndices;
+	}
+
+	void vkMesh::AddPrimitive(const vkPrimitive& primitive)
+	{
+		m_vPrimitives.push_back(primitive);
 	}
 }

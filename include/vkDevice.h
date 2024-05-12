@@ -26,10 +26,18 @@ namespace vk
 		bool CreateFrameBuffers();
 		bool CreateCommandBuffers();
 
+		VkCommandBuffer CreateCommandBuffer(VkCommandBufferLevel level, bool begin) const; // creating intermediate command buffers
+		void FlushCommandBuffer(VkCommandBuffer commandBuffer, VkQueue queue, bool free) const; //Flushing intermediately created command buffers
+
 		bool CopyBuffer(const VkBuffer& stagingBuffer, const VkBuffer& vertexBuffer, const uint32_t& bufferSize) const;
-		bool CreateBuffer(const VkDeviceSize& bufferSize, const VkBufferUsageFlags& usage, const VkMemoryPropertyFlags& preferredMemType, VkBuffer& buffer, VkDeviceMemory& bufferMemory) const;
+		bool CreateBuffer(const VkDeviceSize& bufferSize, const VkBufferUsageFlags& usage, const VkMemoryPropertyFlags& preferredMemType, 
+			VkBuffer& buffer, VkDeviceMemory& bufferMemory) const;
 		bool CreateVertexBuffer(const uint32_t nbVertices, const vkVertex* vertices, VkBuffer& vertexBuffer, VkDeviceMemory& vertexBufferMemory) const;
 		bool CreateIndexBuffer(const uint32_t nbIndices, const uint32_t* indices, VkBuffer& indexBuffer, VkDeviceMemory& indexBufferMemory) const;
+
+		bool CreateImage(const VkImageType& imageType, const VkFormat& format, const VkExtent3D extent, const uint32_t mipLevels, const uint32_t arrayLayers,
+			const VkSampleCountFlagBits& sampleCountFlagBits, const VkImageTiling& tiling, const VkImageUsageFlags& usages,
+			const VkMemoryPropertyFlags& preferredMemType, VkImage& image, VkDeviceMemory& imageMemory) const;
 
 	private:
 		struct QueueFamilyIndices

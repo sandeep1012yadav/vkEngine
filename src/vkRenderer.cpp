@@ -89,6 +89,8 @@ namespace vk
 
 		uint32_t maxSets = nbBuffers;
 
+
+
 		VkDescriptorPoolCreateInfo poolInfo = vk::initializers::DescriptorPoolCreateInfo(poolSizes, maxSets);
 
 		VkResult result = vkCreateDescriptorPool(m_pDevice->GetLogicalDevice(), &poolInfo, nullptr, &m_DescriptorPool);
@@ -174,7 +176,7 @@ namespace vk
 		if (pFrameObj == NULL)
 			return;
 
-		if (pFrameObj->mNbMeshes > 0)
+		if (pFrameObj->m_pMesh != nullptr)
 		{
 			m_FrameUBO.worldMatrix = pFrameObj->mWorldTransformation;
 			vk::tools::UpdateUniformBuffer(m_pDevice->GetLogicalDevice(), m_FrameBuffers[drawableFrameIndex].bufferMemory,
@@ -214,15 +216,16 @@ namespace vk
 		if (pFrameObj == NULL)
 			return;
 
-		if (pFrameObj->mNbMeshes > 0)
+		if (pFrameObj->m_pMesh != nullptr)
 		{
+			vkMesh* pMesh = pFrameObj->m_pMesh;
 			VkDescriptorSet frameDescriptorSets[] = { m_FrameDescriptorSets[drawableFrameIndex] };
 			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_DefautPipelineLayout, 1, 1, frameDescriptorSets, 0, nullptr);
 
-			for (uint32_t i = 0; i < pFrameObj->mNbMeshes; i++)
+			for (uint32_t i = 0; i < pMesh->m_vPrimitives.size(); i++)
 			{
-				vkMesh* pMesh = vkResourcePool::GetInstance()->GetMesh(pFrameObj->m_pMeshes[i]);
-				vkCmdDrawIndexed(commandBuffer, pMesh->mNbIndices, 1, pMesh->mStartIndexLocation, 0, 0);
+				vkPrimitive primitive = pMesh->m_vPrimitives[i];
+				vkCmdDrawIndexed(commandBuffer, primitive.mNbIndices, 1, primitive.mStartIndex, 0, 0);
 			}
 			drawableFrameIndex++;
 		}

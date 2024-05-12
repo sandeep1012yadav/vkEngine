@@ -4,6 +4,9 @@
 
 namespace vk
 {
+	struct vkPrimitive;
+	class vkMesh;
+	class vkGameObject;
 	class vkFrameObject : public vkObject
 	{
 	public:
@@ -11,8 +14,14 @@ namespace vk
 		explicit vkFrameObject(const std::string& name);
 		~vkFrameObject();
 
-		glm::mat4 mTransformation;
+		void AssignMesh(vkMesh* pMesh);
+		void AddMeshPrimitive(const vkPrimitive& primitive);
+
+		glm::mat4 mLocalTransformation;
 		glm::mat4 mWorldTransformation;
+
+		/* GameObject to which this frame is attached. */
+		vkGameObject* m_pParentGameObject;
 
 		/** Parent node. NULL if this node is the root node. */
 		vkFrameObject* m_pParent;
@@ -20,24 +29,13 @@ namespace vk
 		/* Next drawable frame to this frame. */
 		vkFrameObject* m_pNext;
 
-		/* GameObject to which this frame is attached. */
-		//GameObject* pGameObject;
-
 		/** The number of child nodes of this node. */
 		uint32_t mNbChildren;
 
 		/** The child nodes of this node. NULL if mNumChildren is 0. */
 		vkFrameObject** m_pChildren;
-
-		/** The number of meshes of this node. */
-		uint32_t mNbMeshes;
-
-		/** The meshes of this node. Each entry is an index into the
-		  * mesh list of the resource pool.
-		  */
-		uint32_t* m_pMeshes;
-
-
+		
+		vkMesh* m_pMesh;
 
 	private:
 

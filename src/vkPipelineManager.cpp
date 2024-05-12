@@ -56,6 +56,21 @@ namespace vk
 		{
 			vkDestroyPipeline(m_vkLogicalDevice, x.second, nullptr);
 		}
+
+		// destroying descriptor set layouts
+		for (auto const& x : m_vkDescriptorSetLayoutsMap)
+		{
+			for (const VkDescriptorSetLayout& y : x.second)
+			{
+				vkDestroyDescriptorSetLayout(m_vkLogicalDevice, y, nullptr);
+			}
+		}
+
+		// destroying pipeline layout
+		for (auto const& x : m_vkPipelineLayoutMap)
+		{
+			vkDestroyPipelineLayout(m_vkLogicalDevice, x.second, nullptr);
+		}
 	}
 
 	bool vkPipelineManager::CreateDescriptorSetLayouts()
@@ -65,42 +80,91 @@ namespace vk
 		VkDescriptorSetLayout descriptorSetLayout;
 		
 		// creating descriptor set layout for default shader //////////////////////////////////////////////////
-		std::array<VkDescriptorSetLayoutBinding, 1> defaultDescriptorSetLayoutBindings{};
-		defaultDescriptorSetLayoutBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		defaultDescriptorSetLayoutBindings[0].binding = 0;
-		defaultDescriptorSetLayoutBindings[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-		defaultDescriptorSetLayoutBindings[0].descriptorCount = 1;
+		{
+			std::array<VkDescriptorSetLayoutBinding, 1> defaultDescriptorSetLayoutBindings{};
+			defaultDescriptorSetLayoutBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+			defaultDescriptorSetLayoutBindings[0].binding = 0;
+			defaultDescriptorSetLayoutBindings[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+			defaultDescriptorSetLayoutBindings[0].descriptorCount = 1;
 
-		VkDescriptorSetLayoutCreateInfo defaultDescriptorLayoutCI{};
-		defaultDescriptorLayoutCI.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-		defaultDescriptorLayoutCI.bindingCount = static_cast<uint32_t>(defaultDescriptorSetLayoutBindings.size());
-		defaultDescriptorLayoutCI.pBindings = defaultDescriptorSetLayoutBindings.data();
+			VkDescriptorSetLayoutCreateInfo defaultDescriptorLayoutCI{};
+			defaultDescriptorLayoutCI.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+			defaultDescriptorLayoutCI.bindingCount = static_cast<uint32_t>(defaultDescriptorSetLayoutBindings.size());
+			defaultDescriptorLayoutCI.pBindings = defaultDescriptorSetLayoutBindings.data();
 
-		VkResult result = vkCreateDescriptorSetLayout(m_vkLogicalDevice, &defaultDescriptorLayoutCI, nullptr, &descriptorSetLayout);
-		if (result != VK_SUCCESS){
-			bResult = false;
-			vkLog->Log("Default descriptor set layput creation failed.");
+			VkResult result = vkCreateDescriptorSetLayout(m_vkLogicalDevice, &defaultDescriptorLayoutCI, nullptr, &descriptorSetLayout);
+			if (result != VK_SUCCESS) {
+				bResult = false;
+				vkLog->Log("Default descriptor set layput creation failed.");
+			}
+			vDescriptorSetLayouts.push_back(descriptorSetLayout);
+
+			defaultDescriptorSetLayoutBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+			defaultDescriptorSetLayoutBindings[0].binding = 0;
+			defaultDescriptorSetLayoutBindings[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+			defaultDescriptorSetLayoutBindings[0].descriptorCount = 1;
+
+			defaultDescriptorLayoutCI.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+			defaultDescriptorLayoutCI.bindingCount = static_cast<uint32_t>(defaultDescriptorSetLayoutBindings.size());
+			defaultDescriptorLayoutCI.pBindings = defaultDescriptorSetLayoutBindings.data();
+
+			result = vkCreateDescriptorSetLayout(m_vkLogicalDevice, &defaultDescriptorLayoutCI, nullptr, &descriptorSetLayout);
+			if (result != VK_SUCCESS) {
+				bResult = false;
+				vkLog->Log("Default descriptor set layput creation failed.");
+			}
+			vDescriptorSetLayouts.push_back(descriptorSetLayout);
+
+			m_vkDescriptorSetLayoutsMap[ePipeline::PL_DEFAULT] = vDescriptorSetLayouts;
+			vDescriptorSetLayouts.clear();
 		}
-		vDescriptorSetLayouts.push_back(descriptorSetLayout);
-
-		defaultDescriptorSetLayoutBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		defaultDescriptorSetLayoutBindings[0].binding = 0;
-		defaultDescriptorSetLayoutBindings[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-		defaultDescriptorSetLayoutBindings[0].descriptorCount = 1;
-
-		defaultDescriptorLayoutCI.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-		defaultDescriptorLayoutCI.bindingCount = static_cast<uint32_t>(defaultDescriptorSetLayoutBindings.size());
-		defaultDescriptorLayoutCI.pBindings = defaultDescriptorSetLayoutBindings.data();
-
-		result = vkCreateDescriptorSetLayout(m_vkLogicalDevice, &defaultDescriptorLayoutCI, nullptr, &descriptorSetLayout);
-		if (result != VK_SUCCESS) {
-			bResult = false;
-			vkLog->Log("Default descriptor set layput creation failed.");
-		}
-		vDescriptorSetLayouts.push_back(descriptorSetLayout);
-
-		m_vkDescriptorSetLayoutsMap[ePipeline::PL_DEFAULT] = vDescriptorSetLayouts;
+		
 		///////////////////////////////////////////////////////////////////////////////////////////////////////
+		///////////////////////////////////////////////////////////////////////////////////////////////////////
+		///////////////////////////////////////////////////////////////////////////////////////////////////////
+		///////////////////////////////////////////////////////////////////////////////////////////////////////
+		// creating descriptor set layout for standard shader //////////////////////////////////////////////////
+		{
+			std::array<VkDescriptorSetLayoutBinding, 1> descriptorSetLayoutBindings{};
+			descriptorSetLayoutBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+			descriptorSetLayoutBindings[0].binding = 0;
+			descriptorSetLayoutBindings[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+			descriptorSetLayoutBindings[0].descriptorCount = 1;
+
+			VkDescriptorSetLayoutCreateInfo descriptorLayoutCI{};
+			descriptorLayoutCI.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+			
+			descriptorLayoutCI.bindingCount = static_cast<uint32_t>(descriptorSetLayoutBindings.size());
+			descriptorLayoutCI.pBindings = descriptorSetLayoutBindings.data();
+
+			VkResult result = vkCreateDescriptorSetLayout(m_vkLogicalDevice, &descriptorLayoutCI, nullptr, &descriptorSetLayout);
+			if (result != VK_SUCCESS) {
+				bResult = false;
+				vkLog->Log("Standard descriptor set layput creation failed.");
+			}
+			vDescriptorSetLayouts.push_back(descriptorSetLayout);
+
+			descriptorSetLayoutBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			descriptorSetLayoutBindings[0].binding = 0;
+			descriptorSetLayoutBindings[0].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+			descriptorSetLayoutBindings[0].descriptorCount = 1;
+
+			descriptorLayoutCI.bindingCount = static_cast<uint32_t>(descriptorSetLayoutBindings.size());
+			descriptorLayoutCI.pBindings = descriptorSetLayoutBindings.data();
+
+			result = vkCreateDescriptorSetLayout(m_vkLogicalDevice, &descriptorLayoutCI, nullptr, &descriptorSetLayout);
+			if (result != VK_SUCCESS) {
+				bResult = false;
+				vkLog->Log("Standard descriptor set layput creation failed.");
+			}
+			vDescriptorSetLayouts.push_back(descriptorSetLayout);
+
+			m_vkDescriptorSetLayoutsMap[ePipeline::PL_STANDARD] = vDescriptorSetLayouts;
+			vDescriptorSetLayouts.clear();
+		}
+		
+		///////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 		return bResult;
 	}
@@ -256,76 +320,155 @@ namespace vk
 	{
 		bool bStatus = true;
 		VkPipeline pipeline;
+
+		//////////////////////////////////////////////////////////////////////////////////////////////
+		//////////////////////////////////////////////////////////////////////////////////////////////
+		//////////////////////////////////////////////////////////////////////////////////////////////
 		////////////////creation of default pipeline /////////////////////////////////////////////////
-	
-		VkRenderPass renderPass = GetRenderPass(eRenderPass::RP_Forward_Rendering_Geometry);
-		VkPipelineLayout pipelineLayout = GetPipelineLayout(ePipeline::PL_DEFAULT);
+		{
+			VkRenderPass renderPass = GetRenderPass(eRenderPass::RP_Forward_Rendering_Geometry);
+			VkPipelineLayout pipelineLayout = GetPipelineLayout(ePipeline::PL_DEFAULT);
 
-		std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
-		VkShaderModule vertexShaderModule = vk::tools::CreateShaderModule(m_vkLogicalDevice, "./resources/shaders/triangle/default_vert.spv");
-		shaderStages.push_back(vk::initializers::PipelineShaderStageCreateInfo(VK_SHADER_STAGE_VERTEX_BIT, vertexShaderModule, "main"));
+			std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
+			VkShaderModule vertexShaderModule = vk::tools::CreateShaderModule(m_vkLogicalDevice, "./resources/shaders/triangle/default_vert.spv");
+			shaderStages.push_back(vk::initializers::PipelineShaderStageCreateInfo(VK_SHADER_STAGE_VERTEX_BIT, vertexShaderModule, "main"));
 
-		VkShaderModule fragShaderModule = vk::tools::CreateShaderModule(m_vkLogicalDevice, "./resources/shaders/triangle/default_frag.spv");
-		shaderStages.push_back(vk::initializers::PipelineShaderStageCreateInfo(VK_SHADER_STAGE_FRAGMENT_BIT, fragShaderModule, "main"));
+			VkShaderModule fragShaderModule = vk::tools::CreateShaderModule(m_vkLogicalDevice, "./resources/shaders/triangle/default_frag.spv");
+			shaderStages.push_back(vk::initializers::PipelineShaderStageCreateInfo(VK_SHADER_STAGE_FRAGMENT_BIT, fragShaderModule, "main"));
 
-		std::vector<VkVertexInputBindingDescription> inputBindingDesc = vkVertex::GetBindingDesc();
-		std::vector<VkVertexInputAttributeDescription> inputAttributeDesc = vkVertex::GetAttributeDesc();
-		VkPipelineVertexInputStateCreateInfo vertexInputStateCI = vk::initializers::PipelineVertexInputStateCreateInfo(
-			inputBindingDesc, inputAttributeDesc);
+			std::vector<VkVertexInputBindingDescription> inputBindingDesc = vkVertex::GetBindingDesc();
+			std::vector<VkVertexInputAttributeDescription> inputAttributeDesc = vkVertex::GetAttributeDesc();
+			VkPipelineVertexInputStateCreateInfo vertexInputStateCI = vk::initializers::PipelineVertexInputStateCreateInfo(
+				inputBindingDesc, inputAttributeDesc);
 
-		VkPipelineInputAssemblyStateCreateInfo inputAssemblyStateCI = vk::initializers::PipelineInputAssemblyStateCreateInfo(
-			VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, 0, false);
+			VkPipelineInputAssemblyStateCreateInfo inputAssemblyStateCI = vk::initializers::PipelineInputAssemblyStateCreateInfo(
+				VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, 0, false);
 
-		const std::vector<VkViewport> viewPorts = {
-			{0.0f, 0.0f,
-			1.0f, 1.0f,
-			0.1f, 1000.0f},
-		};
+			const std::vector<VkViewport> viewPorts = {
+				{0.0f, 0.0f,
+				1.0f, 1.0f,
+				0.1f, 1000.0f},
+			};
 
-		const std::vector<VkRect2D> scissors = {
-			{0, 0},  //offset
-			{1, 1}   //extent
-		};
+			const std::vector<VkRect2D> scissors = {
+				{0, 0},  //offset
+				{1, 1}   //extent
+			};
 
+			VkPipelineViewportStateCreateInfo viewPortStateCI = vk::initializers::PipelineViewportStateCreateInfo(viewPorts, scissors);
 
-		VkPipelineViewportStateCreateInfo viewPortStateCI = vk::initializers::PipelineViewportStateCreateInfo(viewPorts, scissors);
+			VkPipelineRasterizationStateCreateInfo rasterizationStateCI = vk::initializers::PipelineRasterizationStateCreateInfo(VK_POLYGON_MODE_FILL,
+				VK_CULL_MODE_NONE, VK_FRONT_FACE_COUNTER_CLOCKWISE);
 
-		VkPipelineRasterizationStateCreateInfo rasterizationStateCI = vk::initializers::PipelineRasterizationStateCreateInfo(VK_POLYGON_MODE_FILL,
-			VK_CULL_MODE_NONE, VK_FRONT_FACE_COUNTER_CLOCKWISE);
+			VkPipelineDepthStencilStateCreateInfo depthStencilStateCI = vk::initializers::PipelineDepthStencilStateCreateInfo(VK_TRUE, VK_TRUE, VK_COMPARE_OP_LESS_OR_EQUAL); // disabling stencil test for now
 
-		VkPipelineDepthStencilStateCreateInfo depthStencilStateCI = vk::initializers::PipelineDepthStencilStateCreateInfo(VK_TRUE, VK_TRUE, VK_COMPARE_OP_LESS_OR_EQUAL); // disabling stencil test for now
+			// Fixed-function stage: Multisampling
+			VkPipelineMultisampleStateCreateInfo multisampling = vk::initializers::PipelineMultisampleStateCreateInfo(false, VK_SAMPLE_COUNT_1_BIT);
 
-		// Fixed-function stage: Multisampling
-		VkPipelineMultisampleStateCreateInfo multisampling = vk::initializers::PipelineMultisampleStateCreateInfo(false, VK_SAMPLE_COUNT_1_BIT);
+			// Fixed-function stage: Color blending
+			VkPipelineColorBlendAttachmentState colorBlendAttachment = vk::initializers::PipelineColorBlendAttachmentState(VK_FALSE,
+				VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT);
 
-		// Fixed-function stage: Color blending
-		VkPipelineColorBlendAttachmentState colorBlendAttachment = vk::initializers::PipelineColorBlendAttachmentState(VK_FALSE, 
-			VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT);
-		
-		VkPipelineColorBlendStateCreateInfo colorBlendStateCI = vk::initializers::PipelineColorBlendStateCreateInfo(VK_FALSE, VK_LOGIC_OP_COPY, 1, &colorBlendAttachment);
+			VkPipelineColorBlendStateCreateInfo colorBlendStateCI = vk::initializers::PipelineColorBlendStateCreateInfo(VK_FALSE, VK_LOGIC_OP_COPY, 1, &colorBlendAttachment);
 
-		std::vector<VkDynamicState> dynamicStateEnables = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR, };
+			std::vector<VkDynamicState> dynamicStateEnables = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR, };
 
-		VkPipelineDynamicStateCreateInfo pipelineDynamicStateCreateInfo{};
-		pipelineDynamicStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-		pipelineDynamicStateCreateInfo.pDynamicStates = dynamicStateEnables.data();
-		pipelineDynamicStateCreateInfo.dynamicStateCount = static_cast<uint32_t>(dynamicStateEnables.size());
-		pipelineDynamicStateCreateInfo.flags = 0;
+			VkPipelineDynamicStateCreateInfo pipelineDynamicStateCreateInfo{};
+			pipelineDynamicStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+			pipelineDynamicStateCreateInfo.pDynamicStates = dynamicStateEnables.data();
+			pipelineDynamicStateCreateInfo.dynamicStateCount = static_cast<uint32_t>(dynamicStateEnables.size());
+			pipelineDynamicStateCreateInfo.flags = 0;
 
-		VkGraphicsPipelineCreateInfo vkGraphicsPipelineCI = vk::initializers::GraphicsPipelineCreateInfo(
-			static_cast<uint32_t>(shaderStages.size()), shaderStages.data(), &vertexInputStateCI, &inputAssemblyStateCI, nullptr,
-			&viewPortStateCI, &rasterizationStateCI, nullptr, &depthStencilStateCI, &colorBlendStateCI, &pipelineDynamicStateCreateInfo, pipelineLayout, renderPass);
-		
-		VkResult result = vkCreateGraphicsPipelines(m_vkLogicalDevice, VK_NULL_HANDLE, 1, &vkGraphicsPipelineCI, nullptr, &pipeline);
-		if (result != VK_SUCCESS) {
-			vkLog->Log("Graphics pipeline \"Default\" creation failed...");
-			bStatus = false;
+			VkGraphicsPipelineCreateInfo vkGraphicsPipelineCI = vk::initializers::GraphicsPipelineCreateInfo(
+				static_cast<uint32_t>(shaderStages.size()), shaderStages.data(), &vertexInputStateCI, &inputAssemblyStateCI, nullptr,
+				&viewPortStateCI, &rasterizationStateCI, nullptr, &depthStencilStateCI, &colorBlendStateCI, &pipelineDynamicStateCreateInfo, pipelineLayout, renderPass);
+
+			VkResult result = vkCreateGraphicsPipelines(m_vkLogicalDevice, VK_NULL_HANDLE, 1, &vkGraphicsPipelineCI, nullptr, &pipeline);
+			if (result != VK_SUCCESS) {
+				vkLog->Log("Graphics pipeline \"Default\" creation failed...");
+				bStatus = false;
+			}
+
+			vkDestroyShaderModule(m_vkLogicalDevice, vertexShaderModule, nullptr);
+			vkDestroyShaderModule(m_vkLogicalDevice, fragShaderModule, nullptr);
+
+			m_vkPipelineMap[ePipeline::PL_DEFAULT] = pipeline;
 		}
 
-		vkDestroyShaderModule(m_vkLogicalDevice, vertexShaderModule, nullptr);
-		vkDestroyShaderModule(m_vkLogicalDevice, fragShaderModule, nullptr);
+		//////////////////////////////////////////////////////////////////////////////////////////////
+		//////////////////////////////////////////////////////////////////////////////////////////////
+		//////////////////////////////////////////////////////////////////////////////////////////////
+		////////////////creation of standard pipeline /////////////////////////////////////////////////
+		{
+			VkRenderPass renderPass = GetRenderPass(eRenderPass::RP_Forward_Rendering_Geometry);
+			VkPipelineLayout pipelineLayout = GetPipelineLayout(ePipeline::PL_STANDARD);
 
-		m_vkPipelineMap[ePipeline::PL_DEFAULT] = pipeline;
+			std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
+			VkShaderModule vertexShaderModule = vk::tools::CreateShaderModule(m_vkLogicalDevice, "./resources/shaders/standard/standard_vert.spv");
+			shaderStages.push_back(vk::initializers::PipelineShaderStageCreateInfo(VK_SHADER_STAGE_VERTEX_BIT, vertexShaderModule, "main"));
+
+			VkShaderModule fragShaderModule = vk::tools::CreateShaderModule(m_vkLogicalDevice, "./resources/shaders/standard/standard_frag.spv");
+			shaderStages.push_back(vk::initializers::PipelineShaderStageCreateInfo(VK_SHADER_STAGE_FRAGMENT_BIT, fragShaderModule, "main"));
+
+			std::vector<VkVertexInputBindingDescription> inputBindingDesc = vkVertex::GetBindingDesc();
+			std::vector<VkVertexInputAttributeDescription> inputAttributeDesc = vkVertex::GetAttributeDesc();
+			VkPipelineVertexInputStateCreateInfo vertexInputStateCI = vk::initializers::PipelineVertexInputStateCreateInfo(
+				inputBindingDesc, inputAttributeDesc);
+
+			VkPipelineInputAssemblyStateCreateInfo inputAssemblyStateCI = vk::initializers::PipelineInputAssemblyStateCreateInfo(
+				VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, 0, false);
+
+			const std::vector<VkViewport> viewPorts = {
+				{0.0f, 0.0f,
+				1.0f, 1.0f,
+				0.1f, 1000.0f},
+			};
+
+			const std::vector<VkRect2D> scissors = {
+				{0, 0},  //offset
+				{1, 1}   //extent
+			};
+
+			VkPipelineViewportStateCreateInfo viewPortStateCI = vk::initializers::PipelineViewportStateCreateInfo(viewPorts, scissors);
+
+			VkPipelineRasterizationStateCreateInfo rasterizationStateCI = vk::initializers::PipelineRasterizationStateCreateInfo(VK_POLYGON_MODE_FILL,
+				VK_CULL_MODE_NONE, VK_FRONT_FACE_COUNTER_CLOCKWISE);
+
+			VkPipelineDepthStencilStateCreateInfo depthStencilStateCI = vk::initializers::PipelineDepthStencilStateCreateInfo(VK_TRUE, VK_TRUE, VK_COMPARE_OP_LESS_OR_EQUAL); // disabling stencil test for now
+
+			// Fixed-function stage: Multisampling
+			VkPipelineMultisampleStateCreateInfo multisampling = vk::initializers::PipelineMultisampleStateCreateInfo(false, VK_SAMPLE_COUNT_1_BIT);
+
+			// Fixed-function stage: Color blending
+			VkPipelineColorBlendAttachmentState colorBlendAttachment = vk::initializers::PipelineColorBlendAttachmentState(VK_FALSE,
+				VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT);
+
+			VkPipelineColorBlendStateCreateInfo colorBlendStateCI = vk::initializers::PipelineColorBlendStateCreateInfo(VK_FALSE, VK_LOGIC_OP_COPY, 1, &colorBlendAttachment);
+
+			std::vector<VkDynamicState> dynamicStateEnables = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR, };
+
+			VkPipelineDynamicStateCreateInfo pipelineDynamicStateCreateInfo{};
+			pipelineDynamicStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+			pipelineDynamicStateCreateInfo.pDynamicStates = dynamicStateEnables.data();
+			pipelineDynamicStateCreateInfo.dynamicStateCount = static_cast<uint32_t>(dynamicStateEnables.size());
+			pipelineDynamicStateCreateInfo.flags = 0;
+
+			VkGraphicsPipelineCreateInfo vkGraphicsPipelineCI = vk::initializers::GraphicsPipelineCreateInfo(
+				static_cast<uint32_t>(shaderStages.size()), shaderStages.data(), &vertexInputStateCI, &inputAssemblyStateCI, nullptr,
+				&viewPortStateCI, &rasterizationStateCI, nullptr, &depthStencilStateCI, &colorBlendStateCI, &pipelineDynamicStateCreateInfo, pipelineLayout, renderPass);
+
+			VkResult result = vkCreateGraphicsPipelines(m_vkLogicalDevice, VK_NULL_HANDLE, 1, &vkGraphicsPipelineCI, nullptr, &pipeline);
+			if (result != VK_SUCCESS) {
+				vkLog->Log("Graphics pipeline \"Default\" creation failed...");
+				bStatus = false;
+			}
+
+			vkDestroyShaderModule(m_vkLogicalDevice, vertexShaderModule, nullptr);
+			vkDestroyShaderModule(m_vkLogicalDevice, fragShaderModule, nullptr);
+
+			m_vkPipelineMap[ePipeline::PL_STANDARD] = pipeline;
+		}
+		
 
 		//////////////////////////////////////////////////////////////////////////////////////////////
 

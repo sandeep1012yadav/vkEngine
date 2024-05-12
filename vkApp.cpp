@@ -1,6 +1,7 @@
 //#include <iostream>
 #include "vkEngine.h"
 #include "vkScene.h"
+#include "vkResourceLoader.h"
 using namespace std;
 
 
@@ -13,6 +14,8 @@ int WinMain()
 	pEngine->AddScene(pScene, true);
 
 	pEngine->AddQuadToScene();
+
+	vk::vkResourceLoader::GetInstance()->LoadGameObjectFromGLTF("C:\\MyWorkspace\\VulkanEngine\\SampleData\\adamHead\\adamHead.gltf");
 
 	pEngine->StartEngine();
 	pEngine->StopEngine();

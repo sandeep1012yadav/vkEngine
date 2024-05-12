@@ -1,5 +1,5 @@
 #include "vkCamera.h"
-#include <glm/gtc/matrix_transform.hpp>
+//#include <glm/gtc/matrix_transform.hpp>
 namespace vk
 {
     vkCamera::vkCamera() : vkObject("noName", ObjectType::OT_Camera), m_Fov(60.0f), m_Aspect(16.0f / 9.0f), m_NearPlane(0.3f), m_FarPlane(10000.0f),

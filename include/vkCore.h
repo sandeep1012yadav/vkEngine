@@ -2,6 +2,9 @@
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
 #include "glm/glm.hpp"
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/matrix_inverse.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <vector>
 #include <array>
 #include <string>
@@ -38,6 +41,10 @@ namespace vk
 		}
 
 		void UpdateUniformBuffer(VkDevice device, VkDeviceMemory memory, const void* data, size_t size);
+
+		void ChangeImageLayout(const VkCommandBuffer& cmdBuffer, VkImage& image, const VkImageLayout& oldImageLayout, 
+			const VkImageLayout& newImageLayout, const VkImageSubresourceRange& subresourceRange, 
+			const VkPipelineStageFlags& srcStageMask, const VkPipelineStageFlags& dstStageMask);
 	};
 
 	namespace initializers
@@ -109,6 +116,8 @@ namespace vk
 			imageCI.samples = sampleCountFlagBits;
 			imageCI.tiling = tiling;
 			imageCI.usage = usages;
+			imageCI.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+			imageCI.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
 			return imageCI;
 		}
@@ -146,7 +155,27 @@ namespace vk
 			return memoryAllocateInfo;
 		}
 
-		
+		inline VkImageMemoryBarrier ImageMemoryBarrier(
+			const VkImage& image,
+			const VkImageLayout& oldImageLayout,
+			const VkImageLayout& newImageLayout,
+			const VkImageSubresourceRange& subresourceRange,
+			const VkAccessFlags& srcAccessMask,
+			const VkAccessFlags& dstAccessMask)
+		{
+			VkImageMemoryBarrier imageMemoryBarrier = {};
+			imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+			imageMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+			imageMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+			imageMemoryBarrier.image = image;
+			imageMemoryBarrier.oldLayout = oldImageLayout;
+			imageMemoryBarrier.newLayout = newImageLayout;
+			imageMemoryBarrier.srcAccessMask = srcAccessMask;
+			imageMemoryBarrier.dstAccessMask = dstAccessMask;
+			imageMemoryBarrier.subresourceRange = subresourceRange;
+
+			return imageMemoryBarrier;
+		}
 
 		inline VkPipelineShaderStageCreateInfo PipelineShaderStageCreateInfo(
 			const VkShaderStageFlagBits& shaderStage,
@@ -199,7 +228,7 @@ namespace vk
 			const uint32_t& subpassIndex = 0,
 			const VkPipelineCreateFlags& flags = 0,
 			const VkPipeline& basePipelineHandle = VK_NULL_HANDLE,
-			const int32_t& basePipelineIndex = 0)
+			const int32_t& basePipelineIndex = -1)
 		{
 			VkGraphicsPipelineCreateInfo pipelineCI{};
 			pipelineCI.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;

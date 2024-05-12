@@ -113,7 +113,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>.\thirdpartylibraries\glfw-3.3.8.bin.WIN64\include;.\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\thirdpartylibraries\glfw-3.3.8.bin.WIN64\include;.\thirdpartylibraries\tinygltf;.\thirdpartylibraries\stb;.\thirdpartylibraries\json;.\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
@@ -163,14 +163,18 @@ xcopy "$(ProjectDir)resources" "$(TargetDir)resources" /E /I /Y</Command>
     <ClCompile Include="src\vkFrameObject.cpp" />
     <ClCompile Include="src\vkGameObject.cpp" />
     <ClCompile Include="src\vkLogger.cpp" />
+    <ClCompile Include="src\vkMaterial.cpp" />
     <ClCompile Include="src\vkMesh.cpp" />
     <ClCompile Include="src\vkObject.cpp" />
     <ClCompile Include="src\vkObjectManager.cpp" />
     <ClCompile Include="src\vkPipeline.cpp" />
     <ClCompile Include="src\vkPipelineManager.cpp" />
     <ClCompile Include="src\vkRenderer.cpp" />
+    <ClCompile Include="src\vkResourceLoader.cpp" />
     <ClCompile Include="src\vkResourcePool.cpp" />
     <ClCompile Include="src\vkScene.cpp" />
+    <ClCompile Include="src\vkShader.cpp" />
+    <ClCompile Include="src\vkTexture.cpp" />
     <ClCompile Include="src\vkTriangle.cpp" />
     <ClCompile Include="src\vkWindow.cpp" />
     <ClCompile Include="vkApp.cpp" />
@@ -184,20 +188,26 @@ xcopy "$(ProjectDir)resources" "$(TargetDir)resources" /E /I /Y</Command>
     <ClInclude Include="include\vkFrameObject.h" />
     <ClInclude Include="include\vkGameObject.h" />
     <ClInclude Include="include\vkLogger.h" />
+    <ClInclude Include="include\vkMaterial.h" />
     <ClInclude Include="include\vkMesh.h" />
     <ClInclude Include="include\vkObject.h" />
     <ClInclude Include="include\vkObjectManager.h" />
     <ClInclude Include="include\vkPipeline.h" />
     <ClInclude Include="include\vkPipelineManager.h" />
     <ClInclude Include="include\vkRenderer.h" />
+    <ClInclude Include="include\vkResourceLoader.h" />
     <ClInclude Include="include\vkResourcePool.h" />
     <ClInclude Include="include\vkScene.h" />
+    <ClInclude Include="include\vkShader.h" />
+    <ClInclude Include="include\vkTexture.h" />
     <ClInclude Include="include\vkTriangle.h" />
     <ClInclude Include="include\vkWindow.h" />
     <ClInclude Include="resources\shaders\scene_global.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="resources\pipelines\pipelines.json" />
+    <None Include="resources\shaders\standard\standard.frag" />
+    <None Include="resources\shaders\standard\standard.vert" />
     <None Include="resources\shaders\triangle\default.frag" />
     <None Include="resources\shaders\triangle\default.vert" />
   </ItemGroup>

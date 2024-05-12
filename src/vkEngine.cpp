@@ -1,5 +1,4 @@
 #include "vkCore.h"
-#include "vkEngine.h"
 #include <windows.h>
 #include "vkLogger.h"
 #include "vkWindow.h"
@@ -11,6 +10,8 @@
 #include "vkGameObject.h"
 #include "vkScene.h"
 #include "vkRenderer.h"
+#include "vkResourceLoader.h"
+#include "vkEngine.h"
 namespace vk
 {
 	const vkEngine* vkEngine::m_pvkEngine = nullptr;
@@ -82,6 +83,9 @@ namespace vk
 		m_bEngineRunning = false;
 
 		SetInstance(this);
+
+		vkResourceLoader::CreateInstance(this);
+
 	}
 
 	vkEngine::~vkEngine()
@@ -364,48 +368,50 @@ namespace vk
 	{
 		vkVertex v1 = {
 			{-50.0f, 0.0f, -50.0f, 0.0f},
-			{0.0f, 0.0f},
-			{1.0f, 0.0f, 0.0f}
+			{1.0f, 0.0f, 0.0f},
+			{1.0f, 0.0f, 0.0f},
+			{0.0f, 0.0f}
 		};
 
 		vkVertex v2 = {
 			{50.0f, 0.0f, -50.0f, 0.0f},
-			{0.0f, 0.0f},
-			{1.0f, 0.0f, 0.0f}
+			{1.0f, 0.0f, 0.0f},
+			{0.0f, 0.0f, 1.0f},
+			{0.0f, 0.0f}
 		};
 
 		vkVertex v3 = {
 			{50.0f, 0.0f, 50.0f, 0.0f},
-			{0.0f, 0.0f},
-			{1.0f, 0.0f, 0.0f}
+			{1.0f, 0.0f, 0.0f},
+			{0.0f, 1.0f, 0.0f},
+			{0.0f, 0.0f}
 		};
 
 		vkVertex v4 = {
 			{-50.0f, 0.0f, 50.0f, 0.0f},
-			{0.0f, 0.0f},
-			{1.0f, 0.0f, 0.0f}
+			{1.0f, 0.0f, 0.0f},
+			{1.0f, 0.0f, 1.0f},
+			{0.0f, 0.0f}
 		};
 
 		std::vector<vkVertex> quadVertices = { v1, v2, v3, v4 };
 		std::vector<uint32_t> quadIndices = { 0, 1, 2, 0, 3, 2 };
 
-		vkMesh* pMesh = new vkMesh("QuadMesh");
-		pMesh->mNbVertices = static_cast<uint32_t>(quadVertices.size());
-		pMesh->m_pVertices = vk::tools::CopyVector(quadVertices);
+		vkGameObject* pGameObject = new vkGameObject("QuadGameObject");
+		pGameObject->m_vVertices = std::move(quadVertices);
+		pGameObject->m_vIndices = std::move(quadIndices);
 
-		vkVertex v = pMesh->m_pVertices[0];
-		pMesh->mNbIndices = static_cast<uint32_t>(quadIndices.size());
-		pMesh->m_pIndices = vk::tools::CopyVector(quadIndices);
+		pGameObject->m_pFrameObject = new vkFrameObject("QuadFrameObject");
+		
+		vkMesh*& pMesh = pGameObject->m_pFrameObject->m_pMesh;
+		
+		pMesh = new vkMesh("QuadMesh");
+		
+		vkPrimitive primitive = { 0, 6, -2 };
+		pMesh->m_vPrimitives.push_back(primitive);
 
 		uint32_t meshIndex = vkResourcePool::GetInstance()->AddMesh(pMesh);
 
-		std::vector<uint32_t> meshVector = { meshIndex };
-
-		vkFrameObject* pFrameObject = new vkFrameObject("QuadFrameObject");
-		pFrameObject->mNbMeshes = 1;
-		pFrameObject->m_pMeshes = vk::tools::CopyVector(meshVector);
-
-		vkGameObject* pGameObject = new vkGameObject("QuadGameObject", pFrameObject);
 		m_pMainScene->AddGameObject(pGameObject);
 	}
 

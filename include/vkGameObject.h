@@ -16,11 +16,9 @@ namespace vk
 
 		void Preprocess();
 
-		uint32_t mNbVertices;
-		vkVertex* m_pVertices;
+		std::vector<vkVertex> m_vVertices;
 
-		uint32_t mNbIndices;
-		uint32_t* m_pIndices;
+		std::vector<uint32_t> m_vIndices;
 
 		vkFrameObject* m_pFrameObject;
 
@@ -37,6 +35,9 @@ namespace vk
 	private:
 		VkBuffer mVertexBuffer;
 		VkBuffer mIndexBuffer;
+
+		VkDeviceMemory mVertexBufferMemory;
+		VkDeviceMemory mIndexBufferMemory;
 
 		void CalculateNbUniformBuffers(vkFrameObject* node, uint32_t& nbUniformBuffers);
 		uint32_t CalculateNbVertices(vkFrameObject* node);

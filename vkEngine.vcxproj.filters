@@ -53,6 +53,18 @@
     <ClCompile Include="src\vkRenderer.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\vkResourceLoader.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\vkTexture.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\vkMaterial.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\vkShader.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\vkCamera.h">
@@ -112,6 +124,18 @@
     <ClInclude Include="include\vkRenderer.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="include\vkResourceLoader.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vkTexture.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vkMaterial.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vkShader.h">
+      <Filter>include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="include">
@@ -132,6 +156,9 @@
     <Filter Include="resources\pipelines">
       <UniqueIdentifier>{59b892cc-4036-40a0-9ecd-20c54fa6faeb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="resources\shaders\standard">
+      <UniqueIdentifier>{4c6a26a8-6afc-400a-aa74-2a65c2795c93}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="resources\shaders\triangle\default.frag">
@@ -142,6 +169,12 @@
     </None>
     <None Include="resources\pipelines\pipelines.json">
       <Filter>resources\pipelines</Filter>
+    </None>
+    <None Include="resources\shaders\standard\standard.frag">
+      <Filter>resources\shaders\standard</Filter>
+    </None>
+    <None Include="resources\shaders\standard\standard.vert">
+      <Filter>resources\shaders\standard</Filter>
     </None>
   </ItemGroup>
 </Project>

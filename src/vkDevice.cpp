@@ -516,6 +516,55 @@ namespace vk
 		return bStatus;
 	}
 
+	VkCommandBuffer vkDevice::CreateCommandBuffer(VkCommandBufferLevel level, bool begin) const
+	{
+		// Allocate a temporary command buffer for the copy operation
+		VkCommandBufferAllocateInfo allocInfo = vk::initializers::CommandBufferAllocateInfo(m_vkCommandPool, VK_COMMAND_BUFFER_LEVEL_PRIMARY, 1);
+		VkCommandBuffer commandBuffer;
+		VkResult result = vkAllocateCommandBuffers(m_vkDevice, &allocInfo, &commandBuffer);
+		if (result != VK_SUCCESS) {
+			vkLog->Log("vkDevice : Allocation of intermediate command buffer failed...");
+		}
+
+		if (begin)
+		{
+			// Begin recording the command buffer
+			VkCommandBufferBeginInfo beginInfo = vk::initializers::CommandBufferBeginInfo(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+			result = vkBeginCommandBuffer(commandBuffer, &beginInfo);
+			if (result != VK_SUCCESS) {
+				vkLog->Log("vkDevice : Begin of intermediate command buffer failed...");
+			}
+		}
+		
+		return commandBuffer;
+	}
+
+	void vkDevice::FlushCommandBuffer(VkCommandBuffer commandBuffer, VkQueue queue, bool free) const
+	{
+		// End recording the command buffer
+		vkEndCommandBuffer(commandBuffer);
+
+		// Submit the command buffer to the graphics queue
+		VkSubmitInfo submitInfo{};
+		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+		submitInfo.commandBufferCount = 1;
+		submitInfo.pCommandBuffers = &commandBuffer;
+
+		VkFenceCreateInfo fenceInfo = vk::initializers::FenceCreateInfo(VK_FENCE_CREATE_SIGNALED_BIT);
+		VkFence fence;
+		VkResult result = vkCreateFence(m_vkDevice, &fenceInfo, nullptr, &fence);
+		result = vkQueueSubmit(queue, 1, &submitInfo, fence);
+		result = vkWaitForFences(m_vkDevice, 1, &fence, VK_TRUE, UINT64_MAX);
+		vkDestroyFence(m_vkDevice, fence, nullptr);
+		if (free) {
+			// Free the command buffer
+			vkFreeCommandBuffers(m_vkDevice, m_vkCommandPool, 1, &commandBuffer);
+		}
+		if (result != VK_SUCCESS) {
+			vkLog->Log("vkDevice : FlushCommandBuffer failed...");
+		}
+	}
+
 	bool vkDevice::CreateBuffer(const VkDeviceSize& bufferSize, const VkBufferUsageFlags& usage, const VkMemoryPropertyFlags& preferredMemType, VkBuffer& buffer, VkDeviceMemory& bufferMemory) const
 	{
 		bool bStatus = true;
@@ -653,5 +702,43 @@ namespace vk
 
 		return bStatus;
 	}
+
+	bool vkDevice::CreateImage(const VkImageType& imageType, const VkFormat& format, const VkExtent3D extent, const uint32_t mipLevels, const uint32_t arrayLayers,
+		const VkSampleCountFlagBits& sampleCountFlagBits, const VkImageTiling& tiling, const VkImageUsageFlags& usages,
+		const VkMemoryPropertyFlags& preferredMemType, VkImage& image, VkDeviceMemory& imageMemory) const
+	{
+		bool bStatus = true;
+		VkImageCreateInfo imageCI = vk::initializers::ImageCreateInfo(imageType, format, extent, mipLevels, arrayLayers, sampleCountFlagBits, tiling, usages);
+
+		VkResult result = vkCreateImage(m_vkDevice, &imageCI, nullptr, &image);
+		if (result != VK_SUCCESS) {
+			vkLog->Log("vkDevice : Image creation failed ...");
+			bStatus = false;
+		}
+
+		VkMemoryRequirements memRequirements;
+		vkGetImageMemoryRequirements(m_vkDevice, image, &memRequirements);
+
+		VkMemoryAllocateInfo allocInfo{};
+		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+		allocInfo.allocationSize = memRequirements.size;
+		allocInfo.memoryTypeIndex = FindMemoryType(memRequirements, preferredMemType);
+
+		result = vkAllocateMemory(m_vkDevice, &allocInfo, nullptr, &imageMemory);
+		if (result != VK_SUCCESS) {
+			vkLog->Log("vkDevice : Image memory creation failed ...");
+			bStatus = false;
+		}
+
+		result = vkBindImageMemory(m_vkDevice, image, imageMemory, 0);
+		if (result != VK_SUCCESS) {
+			vkLog->Log("vkDevice : Binding image to memory failed ...");
+			bStatus = false;
+		}
+
+		return bStatus;
+	}
+
 	
+
 }
