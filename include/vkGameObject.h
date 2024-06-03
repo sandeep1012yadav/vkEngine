@@ -22,7 +22,7 @@ namespace vk
 
 		vkFrameObject* m_pFrameObject;
 
-		uint32_t mNbUniformBuffers;
+		uint32_t mNbMaterialDescriptorSets;
 
 		glm::vec3 mPosition;
 		glm::vec3 mRotation;
@@ -39,11 +39,7 @@ namespace vk
 		VkDeviceMemory mVertexBufferMemory;
 		VkDeviceMemory mIndexBufferMemory;
 
-		void CalculateNbUniformBuffers(vkFrameObject* node, uint32_t& nbUniformBuffers);
-		uint32_t CalculateNbVertices(vkFrameObject* node);
-		uint32_t CalculateNbIndices(vkFrameObject* node);
-		void IterateObjectForVertexArray(vkFrameObject* node, uint32_t& index);
-		void IterateObjectForIndexArray(vkFrameObject* node, uint32_t& index);
-		void UpdateTransform(vkFrameObject* currFrame, vkFrameObject* parentFrame, uint32_t& drawableFrameIndex);
+		uint32_t CalculateNbMaterialDescriptorSets(vkFrameObject* node);
+		void UpdateTransform(vkFrameObject* currFrame, vkFrameObject* parentFrame);
 	};
 }

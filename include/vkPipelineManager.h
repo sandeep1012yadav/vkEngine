@@ -28,10 +28,10 @@ namespace vk
 		bool CreateRenderPasses();
 		bool CreatePipelines();
 		
-		const std::vector<VkDescriptorSetLayout>& GetDescriptorSetLayouts(ePipeline pipeline) const;
-		const VkPipelineLayout& GetPipelineLayout(ePipeline pipeline) const;
-		const VkRenderPass& GetRenderPass(eRenderPass renderPass) const;
-		const VkPipeline& GetPipeline(ePipeline pipeline) const;
+		std::vector<VkDescriptorSetLayout> GetDescriptorSetLayouts(ePipeline pipeline) const;
+		VkPipelineLayout GetPipelineLayout(ePipeline pipeline) const;
+		VkRenderPass GetRenderPass(eRenderPass renderPass) const;
+		VkPipeline GetPipeline(ePipeline pipeline) const;
 
 		
 	private:

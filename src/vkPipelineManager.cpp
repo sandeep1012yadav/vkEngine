@@ -79,7 +79,7 @@ namespace vk
 		std::vector<VkDescriptorSetLayout> vDescriptorSetLayouts; // descriptor set layouts for some pipeline(shader)
 		VkDescriptorSetLayout descriptorSetLayout;
 		
-		// creating descriptor set layout for default shader //////////////////////////////////////////////////
+		// creating descriptor set layouts for default shader //////////////////////////////////////////////////
 		{
 			std::array<VkDescriptorSetLayoutBinding, 1> defaultDescriptorSetLayoutBindings{};
 			defaultDescriptorSetLayoutBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -123,43 +123,55 @@ namespace vk
 		///////////////////////////////////////////////////////////////////////////////////////////////////////
 		///////////////////////////////////////////////////////////////////////////////////////////////////////
 		///////////////////////////////////////////////////////////////////////////////////////////////////////
-		// creating descriptor set layout for standard shader //////////////////////////////////////////////////
+		// creating descriptor set layouts for standard shader //////////////////////////////////////////////////
 		{
-			std::array<VkDescriptorSetLayoutBinding, 1> descriptorSetLayoutBindings{};
-			descriptorSetLayoutBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-			descriptorSetLayoutBindings[0].binding = 0;
-			descriptorSetLayoutBindings[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-			descriptorSetLayoutBindings[0].descriptorCount = 1;
+			{
+				std::array<VkDescriptorSetLayoutBinding, 1> descriptorSetLayoutBindings{};
+				descriptorSetLayoutBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+				descriptorSetLayoutBindings[0].binding = 0;
+				descriptorSetLayoutBindings[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+				descriptorSetLayoutBindings[0].descriptorCount = 1;
 
-			VkDescriptorSetLayoutCreateInfo descriptorLayoutCI{};
-			descriptorLayoutCI.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-			
-			descriptorLayoutCI.bindingCount = static_cast<uint32_t>(descriptorSetLayoutBindings.size());
-			descriptorLayoutCI.pBindings = descriptorSetLayoutBindings.data();
+				VkDescriptorSetLayoutCreateInfo descriptorLayoutCI{};
+				descriptorLayoutCI.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 
-			VkResult result = vkCreateDescriptorSetLayout(m_vkLogicalDevice, &descriptorLayoutCI, nullptr, &descriptorSetLayout);
-			if (result != VK_SUCCESS) {
-				bResult = false;
-				vkLog->Log("Standard descriptor set layput creation failed.");
+				descriptorLayoutCI.bindingCount = static_cast<uint32_t>(descriptorSetLayoutBindings.size());
+				descriptorLayoutCI.pBindings = descriptorSetLayoutBindings.data();
+
+				VkResult result = vkCreateDescriptorSetLayout(m_vkLogicalDevice, &descriptorLayoutCI, nullptr, &descriptorSetLayout);
+				if (result != VK_SUCCESS) {
+					bResult = false;
+					vkLog->Log("Standard descriptor set layput creation failed.");
+				}
+				vDescriptorSetLayouts.push_back(descriptorSetLayout);
 			}
-			vDescriptorSetLayouts.push_back(descriptorSetLayout);
 
-			descriptorSetLayoutBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-			descriptorSetLayoutBindings[0].binding = 0;
-			descriptorSetLayoutBindings[0].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-			descriptorSetLayoutBindings[0].descriptorCount = 1;
+			{
+				std::array<VkDescriptorSetLayoutBinding, 2> descriptorSetLayoutBindings{};
+				descriptorSetLayoutBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+				descriptorSetLayoutBindings[0].binding = 0;
+				descriptorSetLayoutBindings[0].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+				descriptorSetLayoutBindings[0].descriptorCount = 1;
+				
+				descriptorSetLayoutBindings[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+				descriptorSetLayoutBindings[1].binding = 1;
+				descriptorSetLayoutBindings[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+				descriptorSetLayoutBindings[1].descriptorCount = 1;
 
-			descriptorLayoutCI.bindingCount = static_cast<uint32_t>(descriptorSetLayoutBindings.size());
-			descriptorLayoutCI.pBindings = descriptorSetLayoutBindings.data();
+				VkDescriptorSetLayoutCreateInfo descriptorLayoutCI{};
+				descriptorLayoutCI.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+				descriptorLayoutCI.bindingCount = static_cast<uint32_t>(descriptorSetLayoutBindings.size());
+				descriptorLayoutCI.pBindings = descriptorSetLayoutBindings.data();
 
-			result = vkCreateDescriptorSetLayout(m_vkLogicalDevice, &descriptorLayoutCI, nullptr, &descriptorSetLayout);
-			if (result != VK_SUCCESS) {
-				bResult = false;
-				vkLog->Log("Standard descriptor set layput creation failed.");
+				VkResult result = vkCreateDescriptorSetLayout(m_vkLogicalDevice, &descriptorLayoutCI, nullptr, &descriptorSetLayout);
+				if (result != VK_SUCCESS) {
+					bResult = false;
+					vkLog->Log("Standard descriptor set layput creation failed.");
+				}
+				vDescriptorSetLayouts.push_back(descriptorSetLayout);
+
+				m_vkDescriptorSetLayoutsMap[ePipeline::PL_STANDARD] = vDescriptorSetLayouts;
 			}
-			vDescriptorSetLayouts.push_back(descriptorSetLayout);
-
-			m_vkDescriptorSetLayoutsMap[ePipeline::PL_STANDARD] = vDescriptorSetLayouts;
 			vDescriptorSetLayouts.clear();
 		}
 		
@@ -169,7 +181,7 @@ namespace vk
 		return bResult;
 	}
 
-	const std::vector<VkDescriptorSetLayout>& vkPipelineManager::GetDescriptorSetLayouts(ePipeline pipeline) const
+	std::vector<VkDescriptorSetLayout> vkPipelineManager::GetDescriptorSetLayouts(ePipeline pipeline) const
 	{
 		auto it = m_vkDescriptorSetLayoutsMap.find(pipeline);
 		if (it != m_vkDescriptorSetLayoutsMap.end())
@@ -184,33 +196,66 @@ namespace vk
 		bool bResult = true;
 		VkPipelineLayout pipelineLayout;
 		
-		// pipeline layout for default shader ////////////////////////////////////////////////////
-		std::vector<VkDescriptorSetLayout> descriptorSetLayouts = m_vkDescriptorSetLayoutsMap[ePipeline::PL_DEFAULT];
-		
-		VkPipelineLayoutCreateInfo pipelineLayoutCI{};
-		pipelineLayoutCI.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-		pipelineLayoutCI.setLayoutCount = static_cast<uint32_t>(descriptorSetLayouts.size());
-		pipelineLayoutCI.pSetLayouts = descriptorSetLayouts.data();
-		
-		if (vkCreatePipelineLayout(m_vkLogicalDevice, &pipelineLayoutCI, nullptr, &pipelineLayout) != VK_SUCCESS)
+		//////////////////////////////////////////////////////////////////////////////////////////////
+		//////////////////////////////////////////////////////////////////////////////////////////////
+		//////////////////////////////////////////////////////////////////////////////////////////////
+		////////////////pipeline layout for default shader ///////////////////////////////////////////
 		{
-			vkLog->Log("Default shader pipeline layout creation failed.");
-			bResult = false;
+			std::vector<VkDescriptorSetLayout> descriptorSetLayouts = m_vkDescriptorSetLayoutsMap[ePipeline::PL_DEFAULT];
+
+			VkPipelineLayoutCreateInfo pipelineLayoutCI{};
+			pipelineLayoutCI.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+			pipelineLayoutCI.setLayoutCount = static_cast<uint32_t>(descriptorSetLayouts.size());
+			pipelineLayoutCI.pSetLayouts = descriptorSetLayouts.data();
+
+			if (vkCreatePipelineLayout(m_vkLogicalDevice, &pipelineLayoutCI, nullptr, &pipelineLayout) != VK_SUCCESS)
+			{
+				vkLog->Log("Default shader pipeline layout creation failed.");
+				bResult = false;
+			}
+			m_vkPipelineLayoutMap[ePipeline::PL_DEFAULT] = pipelineLayout;
 		}
-		m_vkPipelineLayoutMap[ePipeline::PL_DEFAULT] = pipelineLayout;
+
+		//////////////////////////////////////////////////////////////////////////////////////////////
+		//////////////////////////////////////////////////////////////////////////////////////////////
+		//////////////////////////////////////////////////////////////////////////////////////////////
+		////////////////pipeline layout for standard shader ///////////////////////////////////////////
+		{
+			std::vector<VkDescriptorSetLayout> descriptorSetLayouts = m_vkDescriptorSetLayoutsMap[ePipeline::PL_STANDARD];
+
+			VkPushConstantRange pushConstantRange = {};
+			pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT; // Specify the shader stage
+			pushConstantRange.offset = 0; // Offset within the push constant block
+			pushConstantRange.size = sizeof(glm::mat4); // Size of the push constant block
+
+			VkPipelineLayoutCreateInfo pipelineLayoutCI{};
+			pipelineLayoutCI.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+			pipelineLayoutCI.setLayoutCount = static_cast<uint32_t>(descriptorSetLayouts.size());
+			pipelineLayoutCI.pSetLayouts = descriptorSetLayouts.data();
+			pipelineLayoutCI.pushConstantRangeCount = 1;
+			pipelineLayoutCI.pPushConstantRanges = &pushConstantRange;
+
+			if (vkCreatePipelineLayout(m_vkLogicalDevice, &pipelineLayoutCI, nullptr, &pipelineLayout) != VK_SUCCESS)
+			{
+				vkLog->Log("Default shader pipeline layout creation failed.");
+				bResult = false;
+			}
+			m_vkPipelineLayoutMap[ePipeline::PL_STANDARD] = pipelineLayout;
+		}
+		
 		//////////////////////////////////////////////////////////////////////////////////////////
 	
 		return bResult;
 	}
 
-	const VkPipelineLayout& vkPipelineManager::GetPipelineLayout(ePipeline pipeline) const
+	VkPipelineLayout vkPipelineManager::GetPipelineLayout(ePipeline pipeline) const
 	{
 		auto it = m_vkPipelineLayoutMap.find(pipeline);
 		if (it != m_vkPipelineLayoutMap.end())
 		{
 			return it->second;
 		}
-		return nullptr;
+		return VK_NULL_HANDLE;
 	}
 
 	bool vkPipelineManager::CreateRenderPasses()
@@ -305,7 +350,7 @@ namespace vk
 		return bStatus;
 	}
 
-	const VkRenderPass& vkPipelineManager::GetRenderPass(eRenderPass renderPass) const
+	VkRenderPass vkPipelineManager::GetRenderPass(eRenderPass renderPass) const
 	{
 		auto it = m_vkRenderPasses.find(renderPass);
 		if (it != m_vkRenderPasses.end())
@@ -313,7 +358,7 @@ namespace vk
 			return it->second;
 		}
 
-		return nullptr;
+		return VK_NULL_HANDLE;
 	}
 
 	bool vkPipelineManager::CreatePipelines()
@@ -459,7 +504,7 @@ namespace vk
 
 			VkResult result = vkCreateGraphicsPipelines(m_vkLogicalDevice, VK_NULL_HANDLE, 1, &vkGraphicsPipelineCI, nullptr, &pipeline);
 			if (result != VK_SUCCESS) {
-				vkLog->Log("Graphics pipeline \"Default\" creation failed...");
+				vkLog->Log("Graphics pipeline \"Standard\" creation failed...");
 				bStatus = false;
 			}
 
@@ -476,13 +521,13 @@ namespace vk
 		return bStatus;
 	}
 
-	const VkPipeline& vkPipelineManager::GetPipeline(ePipeline pipeline) const
+	VkPipeline vkPipelineManager::GetPipeline(ePipeline pipeline) const
 	{
 		auto it = m_vkPipelineMap.find(pipeline);
 		if (it != m_vkPipelineMap.end())
 		{
 			return it->second;
 		}
-		return nullptr;
+		return VK_NULL_HANDLE;
 	}
 }

@@ -80,10 +80,10 @@ namespace vk
 		m_vkAvailableDeviceLevelExtentions.resize(deviceLevelExtensionCount);
 		vkEnumerateDeviceExtensionProperties(m_vkPhysicalDevice, nullptr, &deviceLevelExtensionCount, m_vkAvailableDeviceLevelExtentions.data());
 
-		vkLog->Log("Supported device level extension properties :");
+		/*vkLog->Log("Supported device level extension properties :");
 		for (const auto& extension : m_vkAvailableDeviceLevelExtentions) {
 			vkLog->Log("	", extension.extensionName);
-		}
+		}*/
 	}
 
 	bool vkDevice::CheckDeviceExtensionSupport(const VkPhysicalDevice physicalDevice)
@@ -376,7 +376,7 @@ namespace vk
 		m_vkFrameBuffers.resize(m_vkSwapChainImages.size());
 		m_vkSwapChainImageViews.resize(m_vkSwapChainImages.size());
 
-		vkPipelineManager* pipelineManager = m_pvkEngine->GetPipelineManager();
+		const vkPipelineManager* pipelineManager = m_pvkEngine->GetPipelineManager();
 		VkRenderPass renderPass = pipelineManager->GetRenderPass(eRenderPass::RP_Forward_Rendering_Geometry);
 
 		for (uint32_t frameBufferIndex = 0; frameBufferIndex < m_vkFrameBuffers.size(); frameBufferIndex++)
@@ -550,12 +550,17 @@ namespace vk
 		submitInfo.commandBufferCount = 1;
 		submitInfo.pCommandBuffers = &commandBuffer;
 
-		VkFenceCreateInfo fenceInfo = vk::initializers::FenceCreateInfo(VK_FENCE_CREATE_SIGNALED_BIT);
-		VkFence fence;
-		VkResult result = vkCreateFence(m_vkDevice, &fenceInfo, nullptr, &fence);
-		result = vkQueueSubmit(queue, 1, &submitInfo, fence);
-		result = vkWaitForFences(m_vkDevice, 1, &fence, VK_TRUE, UINT64_MAX);
-		vkDestroyFence(m_vkDevice, fence, nullptr);
+		//VkFenceCreateInfo fenceInfo = vk::initializers::FenceCreateInfo(0);  // remember : dont create fence in signaled state
+		//VkFence fence;
+		//VkResult result = vkCreateFence(m_vkDevice, &fenceInfo, nullptr, &fence);
+		//result = vkQueueSubmit(queue, 1, &submitInfo, fence);
+		//result = vkWaitForFences(m_vkDevice, 1, &fence, VK_TRUE, UINT64_MAX);
+		//vkDestroyFence(m_vkDevice, fence, nullptr);
+
+
+		VkResult result = vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
+		result = vkQueueWaitIdle(queue); // Wait for the copy to finish
+
 		if (free) {
 			// Free the command buffer
 			vkFreeCommandBuffers(m_vkDevice, m_vkCommandPool, 1, &commandBuffer);

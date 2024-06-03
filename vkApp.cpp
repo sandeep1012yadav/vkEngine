@@ -2,6 +2,7 @@
 #include "vkEngine.h"
 #include "vkScene.h"
 #include "vkResourceLoader.h"
+//#include "vkGameObject.h"
 using namespace std;
 
 
@@ -11,11 +12,13 @@ int WinMain()
 	vk::vkEngine* pEngine = new vk::vkEngine();
 	vk::vkScene *pScene = pEngine->CreateScene("MainScene");
 
+	//vk::vkGameObject* pGameObject = pEngine->CreateQuad();
+	
+	//vk::vkGameObject* pGameObject = vk::vkResourceLoader::GetInstance()->LoadGameObjectFromGLTF("C:\\MyWorkspace\\VulkanEngine\\SampleData\\adamHead\\adamHead.gltf");
+	vk::vkGameObject* pGameObject = vk::vkResourceLoader::GetInstance()->LoadGameObjectFromGLTF("C:\\MyWorkspace\\VulkanEngine\\SampleData\\FlightHelmet\\FlightHelmet.gltf");
+	
+	pScene->AddGameObject(pGameObject);
 	pEngine->AddScene(pScene, true);
-
-	pEngine->AddQuadToScene();
-
-	vk::vkResourceLoader::GetInstance()->LoadGameObjectFromGLTF("C:\\MyWorkspace\\VulkanEngine\\SampleData\\adamHead\\adamHead.gltf");
 
 	pEngine->StartEngine();
 	pEngine->StopEngine();

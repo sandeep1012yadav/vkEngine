@@ -1,5 +1,5 @@
 #version 450
-layout (set = 0, binding = 0) uniform UBOScene
+layout (set = 0, binding = 0) uniform UniformBufferObject_Scene
 {
 	mat4 viewMatrix;
 	mat4 projectionMatrix;
@@ -7,10 +7,10 @@ layout (set = 0, binding = 0) uniform UBOScene
 	vec3 cameraPos;
 }uboScene;
 
-layout (set = 1, binding = 0) uniform UBOFrame
+layout (push_constant) uniform PushConstant_Frame
 {
-	mat4 modelMarrix;
-} uboFrame;
+	mat4 modelMatrix;
+} pcFrame;
 
 
 layout (location = 0) in vec4 inPos;
@@ -28,7 +28,7 @@ layout (location = 4) out vec3 outCameraPos;
 
 void main() 
 {
-	gl_Position = uboScene.projectionMatrix * uboScene.viewMatrix * uboFrame.modelMarrix * vec4(inPos.xyz, 1.0);
+	gl_Position = uboScene.projectionMatrix * uboScene.viewMatrix * pcFrame.modelMatrix * vec4(inPos.xyz, 1.0);
 	outNormal = inNormal;
 	outColor = inColor;
 	outUV = inUV;

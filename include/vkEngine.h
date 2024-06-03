@@ -29,8 +29,8 @@ namespace vk
 		bool StartEngine();
 		bool StopEngine();
 
-		void Process(float fTimeElapsed);
-		void Render(float fTimeElapsed);
+		void Process(float deltaTime);
+		void Render(float deltaTime);
 
 		void CursorPosCallback(double xPos, double yPos);
 		void MouseButtonCallback(int button, int action, int mods);
@@ -39,12 +39,12 @@ namespace vk
 
 		vkWindow* GetWindow();
 		vkDevice* GetDevice() const;
-		vkPipelineManager* GetPipelineManager();
+		const vkPipelineManager* GetPipelineManager() const;
 		const VkInstance& GetVulkanInstance() const;
 		const VkSurfaceKHR& GetWindowSurface() const;
 		const VkRect2D& GetWindowSize() const { return m_WindowSize; }
 
-		void AddQuadToScene();
+		vkGameObject* CreateQuad();
 
 	private:
 		static const vkEngine* m_pvkEngine;

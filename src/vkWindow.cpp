@@ -30,7 +30,10 @@ namespace vk
 		glfwSetCursorPosCallback(m_pWindow, CursorPosCallback);
 		glfwSetMouseButtonCallback(m_pWindow, MouseButtonCallback);
 		glfwSetFramebufferSizeCallback(m_pWindow, FrameBufferSizeCallback);
+		glfwSetScrollCallback(m_pWindow, ScrollCallback);
 		m_IsMouseDragging = false;
+		mLastPos = glm::vec2(0.0f, 0.0f);
+		mCurrentPos = glm::vec2(0.0f, 0.0f);
 	}
 
 	vkWindow::~vkWindow()
@@ -69,23 +72,16 @@ namespace vk
 
 	void vkWindow::CursorPosCallback(double xPos, double yPos)
 	{
-		if (m_IsMouseDragging) {
-			// Calculate the cursor's delta movement
-			float deltaX = static_cast<float>(xPos - m_LastX);
-			float deltaY = static_cast<float>(yPos - m_LastY);
-
-			// Update the last cursor position
-			m_LastX = xPos;
-			m_LastY = yPos;
-
+		if (m_IsMouseDragging) 
+		{
 			vkCamera* pCamera = m_pEngine->GetMainScene()->GetMainCamera();
+			mCurrentPos = glm::vec2(xPos, yPos);
+			glm::vec2 delta = mCurrentPos - mLastPos;
+			glm::vec3 deltaRot = glm::vec3(-delta.y, delta.x, 0);
+			pCamera->Rotate(deltaRot);
+			mLastPos = mCurrentPos;
 
-			deltaX *= pCamera->GetMouseSensitivity();
-			deltaY *= pCamera->GetMouseSensitivity();
-			pCamera->UpdateCameraDelta(glm::vec3(0.0f, 0.0f, 0.0f), deltaX, deltaY);
 		}
-
-
 		m_pEngine->CursorPosCallback(xPos, yPos);
 	}
 
@@ -94,30 +90,102 @@ namespace vk
 		if (button == GLFW_MOUSE_BUTTON_LEFT) {
 			if (action == GLFW_PRESS) {
 				m_IsMouseDragging = true;
-				glfwGetCursorPos(m_pWindow, &m_LastX, &m_LastY);
+				double x = 0, y = 0;
+				glfwGetCursorPos(m_pWindow, &x, &y);
+				mLastPos = glm::vec2(x, y);
 			}
 			else if (action == GLFW_RELEASE) {
 				m_IsMouseDragging = false;
 			}
 		}
 
-
+		if (button == GLFW_MOUSE_BUTTON_MIDDLE)
+		{
+			if (action == GLFW_PRESS)
+			{
+				vkCamera* pCamera = m_pEngine->GetMainScene()->GetMainCamera();
+				if (pCamera->GetMode() == vkCamera::Mode::Flycam)
+				{
+					pCamera->SetMode(vkCamera::Mode::Arcball);
+					pCamera->SetPosition(glm::vec3(0, 0, -1.0f));
+					pCamera->SetRotation(glm::vec3(0, 0, 0.0f));
+				}
+				else
+				{
+					pCamera->SetMode(vkCamera::Mode::Flycam);
+				}
+			}
+		}
 		m_pEngine->MouseButtonCallback(button, action, mods);
 	}
 
 	void vkWindow::KeyCallback(int key, int scancode, int action, int mods)
 	{
+		float fSpeed = 0.1f;
 		vkCamera* pCamera = m_pEngine->GetMainScene()->GetMainCamera();
+
+		if (mods == GLFW_KEY_DOWN)
+		{
+
+		}
 		switch (key)
 		{
 			case GLFW_KEY_PAGE_UP:
 			{
-				pCamera->UpdateCameraDelta(glm::vec3(0.0f, 1.0f, 0.0f), 0.0f, 0.0f);
+				//pCamera->UpdateCameraDelta(glm::vec3(0.0f, 1.0f, 0.0f) * fSpeed, 0.0f, 0.0f);
 				break;
 			}
 			case GLFW_KEY_PAGE_DOWN:
 			{
-				pCamera->UpdateCameraDelta(glm::vec3(0.0f, -1.0f, 0.0f), 0.0f, 0.0f);
+				//pCamera->UpdateCameraDelta(glm::vec3(0.0f, -1.0f, 0.0f) * fSpeed, 0.0f, 0.0f);
+				break;
+			}
+			case GLFW_KEY_LEFT:
+			{
+				if (action == GLFW_PRESS)
+				{
+					pCamera->mKeys.left = true;
+				}
+				else if (action == GLFW_RELEASE)
+				{
+					pCamera->mKeys.left = false;
+				}
+				break;
+			}
+			case GLFW_KEY_RIGHT:
+			{
+				if (action == GLFW_PRESS)
+				{
+					pCamera->mKeys.right = true;
+				}
+				else if (action == GLFW_RELEASE)
+				{
+					pCamera->mKeys.right = false;
+				}
+				break;
+			}
+			case GLFW_KEY_UP:
+			{
+				if (action == GLFW_PRESS)
+				{
+					pCamera->mKeys.up = true;
+				}
+				else if (action == GLFW_RELEASE)
+				{
+					pCamera->mKeys.up = false;
+				}
+				break;
+			}
+			case GLFW_KEY_DOWN:
+			{
+				if (action == GLFW_PRESS)
+				{
+					pCamera->mKeys.down = true;
+				}
+				else if (action == GLFW_RELEASE)
+				{
+					pCamera->mKeys.down = false;
+				}
 				break;
 			}
 		}
@@ -129,6 +197,12 @@ namespace vk
 	void vkWindow::FrameBufferSizeCallback(int width, int height)
 	{
 		m_pEngine->FrameBufferSizeCallback(width, height);
+	}
+
+	void vkWindow::ScrollCallback(double xOffset, double yOffset)
+	{
+		vkCamera* pCamera = m_pEngine->GetMainScene()->GetMainCamera();
+		pCamera->Translate(pCamera->mFront * (float)yOffset/2.0f);
 	}
 
 
@@ -154,5 +228,10 @@ namespace vk
 	void vkWindow::FrameBufferSizeCallback(GLFWwindow* window, int width, int height)
 	{
 		m_pStaticWindow->FrameBufferSizeCallback(width, height);
+	}
+
+	void vkWindow::ScrollCallback(GLFWwindow* window, double xOffset, double yOffset)
+	{
+		m_pStaticWindow->ScrollCallback(xOffset, yOffset);
 	}
 }

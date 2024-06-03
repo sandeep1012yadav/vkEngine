@@ -11,6 +11,8 @@
 #include "vkScene.h"
 #include "vkRenderer.h"
 #include "vkResourceLoader.h"
+#include "vkSamplerManager.h"
+#include "vkMaterial.h"
 #include "vkEngine.h"
 namespace vk
 {
@@ -86,6 +88,8 @@ namespace vk
 
 		vkResourceLoader::CreateInstance(this);
 
+		vkSamplerManager::CreateInstance(this);
+
 	}
 
 	vkEngine::~vkEngine()
@@ -98,6 +102,8 @@ namespace vk
 		vkDestroySemaphore(m_pvkDevice->GetLogicalDevice(), m_vkRenderCompletedSemaphore, NULL);
 		vkDestroySemaphore(m_pvkDevice->GetLogicalDevice(), m_vkPresentCompletedSemaphore, NULL);
 		vkDestroyInstance(m_vkInstance, nullptr);
+
+		vkSamplerManager::DestroyInstance();
 	}
 
 	vkWindow* vkEngine::GetWindow()
@@ -110,7 +116,7 @@ namespace vk
 		return m_pvkDevice;
 	}
 
-	vkPipelineManager* vkEngine::GetPipelineManager()
+	const vkPipelineManager* vkEngine::GetPipelineManager() const
 	{
 		return m_pvkPipelineManager;
 	}
@@ -282,11 +288,11 @@ namespace vk
 		m_pMainScene = m_vScenes[m_MainSceneId];
 	}
 
-	void vkEngine::Process(float fTimeElapsed)
+	void vkEngine::Process(float deltaTime)
 	{
 
 	}
-	void vkEngine::Render(float fTimeElapsed)
+	void vkEngine::Render(float deltaTime)
 	{
 		const VkDevice vkDevice = m_pvkDevice->GetLogicalDevice();
 		const VkSwapchainKHR swapChain = m_pvkDevice->GetSwapChain();
@@ -335,7 +341,7 @@ namespace vk
 		scissor.offset.y = 0;
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-		m_pRenderer->RenderScene(commandBuffer, fTimeElapsed);
+		m_pRenderer->RenderScene(commandBuffer, deltaTime);
 
 
 		vkCmdEndRenderPass(commandBuffer);
@@ -364,7 +370,7 @@ namespace vk
 		}
 	}
 
-	void vkEngine::AddQuadToScene()
+	vkGameObject* vkEngine::CreateQuad()
 	{
 		vkVertex v1 = {
 			{-50.0f, 0.0f, -50.0f, 0.0f},
@@ -404,15 +410,16 @@ namespace vk
 		pGameObject->m_pFrameObject = new vkFrameObject("QuadFrameObject");
 		
 		vkMesh*& pMesh = pGameObject->m_pFrameObject->m_pMesh;
+
+		vkMaterial* pMaterial = new vkMaterial(this, "QuadMaterial");
+		uint32_t matIndex = vkResourcePool::GetInstance()->AddMaterial(pMaterial);
 		
 		pMesh = new vkMesh("QuadMesh");
 		
-		vkPrimitive primitive = { 0, 6, -2 };
+		vkPrimitive primitive = { 0, 6, matIndex };
 		pMesh->m_vPrimitives.push_back(primitive);
 
-		uint32_t meshIndex = vkResourcePool::GetInstance()->AddMesh(pMesh);
-
-		m_pMainScene->AddGameObject(pGameObject);
+		return pGameObject;
 	}
 
 	bool vkEngine::StartEngine()

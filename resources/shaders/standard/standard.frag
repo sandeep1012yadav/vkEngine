@@ -1,6 +1,15 @@
 #version 450
 
-layout (set = 2, binding = 0) uniform sampler2D samplerColorMap;
+layout (set = 1, binding = 0) uniform UniformBufferObject_Scene
+{
+	float mGlossinessFactor;
+	int mDiffuseTextureIndex;
+	int mNormalTextureIndex;
+	vec4 mDiffuseFactor;
+	vec4 mAmbientColor;
+}uboMaterial;
+
+layout (set = 1, binding = 1) uniform sampler2D samplerColorMap;
 
 layout (location = 0) in vec3 inNormal;
 layout (location = 1) in vec3 inColor;
@@ -13,5 +22,6 @@ layout (location = 0) out vec4 outFragColor;
 
 void main() 
 {
-	outFragColor = texture(samplerColorMap, inUV);
+	//outFragColor = uboMaterial.mDiffuseFactor;
+	outFragColor = texture(samplerColorMap, inUV) * uboMaterial.mDiffuseFactor;
 }

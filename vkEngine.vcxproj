@@ -172,6 +172,7 @@ xcopy "$(ProjectDir)resources" "$(TargetDir)resources" /E /I /Y</Command>
     <ClCompile Include="src\vkRenderer.cpp" />
     <ClCompile Include="src\vkResourceLoader.cpp" />
     <ClCompile Include="src\vkResourcePool.cpp" />
+    <ClCompile Include="src\vkSamplerManager.cpp" />
     <ClCompile Include="src\vkScene.cpp" />
     <ClCompile Include="src\vkShader.cpp" />
     <ClCompile Include="src\vkTexture.cpp" />
@@ -197,6 +198,7 @@ xcopy "$(ProjectDir)resources" "$(TargetDir)resources" /E /I /Y</Command>
     <ClInclude Include="include\vkRenderer.h" />
     <ClInclude Include="include\vkResourceLoader.h" />
     <ClInclude Include="include\vkResourcePool.h" />
+    <ClInclude Include="include\vkSamplerManager.h" />
     <ClInclude Include="include\vkScene.h" />
     <ClInclude Include="include\vkShader.h" />
     <ClInclude Include="include\vkTexture.h" />

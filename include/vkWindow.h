@@ -23,12 +23,14 @@ namespace vk
 		void MouseButtonCallback(int button, int action, int mods);
 		void KeyCallback(int key, int scancode, int action, int mods);
 		void FrameBufferSizeCallback(int width, int height);
+		void ScrollCallback(double xOffset, double yOffset);
 
 
 		static void CursorPosCallback(GLFWwindow* window, double xPos, double yPos);
 		static void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 		static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 		static void FrameBufferSizeCallback(GLFWwindow* window, int width, int height);
+		static void ScrollCallback(GLFWwindow* window, double xOffset, double yOffset);
 	private:
 		static vkEngine* m_pStaticEngine;
 		static vkWindow* m_pStaticWindow;
@@ -40,7 +42,7 @@ namespace vk
 		
 		//Camera related setting
 		bool m_IsMouseDragging;
-		double m_LastX, m_LastY;
-
+		//double m_LastX, m_LastY;
+		glm::vec2 mCurrentPos, mLastPos;
 	};
 }

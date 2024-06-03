@@ -4,6 +4,11 @@
 
 namespace vk
 {
+	struct FramePushConstant
+	{
+		glm::mat4 worldMatrix;
+	};
+
 	struct vkPrimitive;
 	class vkMesh;
 	class vkGameObject;
@@ -36,9 +41,6 @@ namespace vk
 		vkFrameObject** m_pChildren;
 		
 		vkMesh* m_pMesh;
-
-	private:
-
 	};
 
 	

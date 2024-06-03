@@ -1,91 +1,110 @@
 #include "vkCamera.h"
-//#include <glm/gtc/matrix_transform.hpp>
+
 namespace vk
 {
-    vkCamera::vkCamera() : vkObject("noName", ObjectType::OT_Camera), m_Fov(60.0f), m_Aspect(16.0f / 9.0f), m_NearPlane(0.3f), m_FarPlane(10000.0f),
-        m_Position(glm::vec3(0.0f, 100.0f, 0.0f)),
-        m_WorldUp(glm::vec3(0.0f, 1.0f, 0.0f)),
-        m_Yaw(0.0f), m_Pitch(-60.0f), m_MouseSensitivity(0.1f)
-    {
-        UpdateCameraVectors();
-        UpdateProjection();
-    }
+	vkCamera::vkCamera(const std::string& name) : vkObject(name, ObjectType::OT_Camera), mFov(60.0f), mAspect(16.0f / 9.0f), mNearPlane(0.3f), mFarPlane(10000.0f)
+	{
+		SetPosition(glm::vec3(0, 0, -1.0f));
+		UpdateVectors();
+		UpdateViewMatrix();
+		SetProjection(mFov, mAspect, mNearPlane, mFarPlane);
+	}
 
-    vkCamera::vkCamera(const std::string& name) : vkObject(name, ObjectType::OT_Camera), m_Fov(60.0f), m_Aspect(16.0f / 9.0f), m_NearPlane(0.3f), m_FarPlane(10000.0f),
-        m_Position(glm::vec3(0.0f, 100.0f, 0.0f)),
-        m_WorldUp(glm::vec3(0.0f, 1.0f, 0.0f)),
-        m_Yaw(0.0f), m_Pitch(-60.0f), m_MouseSensitivity(0.1f)
-    {
-        UpdateCameraVectors();
-        UpdateProjection();
-    }
+	vkCamera::vkCamera(const std::string& name, float fov, float aspect, float nearPlane, float farPlane) : vkObject(name, ObjectType::OT_Camera),
+		mFov(fov), mAspect(aspect), mNearPlane(nearPlane), mFarPlane(farPlane)
+	{
+		SetPosition(glm::vec3(0, 0, -1.0f));
+		UpdateVectors();
+		UpdateViewMatrix();
+		SetProjection(mFov, mAspect, mNearPlane, mFarPlane);
+	}
 
-    vkCamera::vkCamera(const std::string& name, float fov, float aspect, float nearPlane, float farPlane)
-        : vkObject(name, ObjectType::OT_Camera), m_Fov(fov), m_Aspect(aspect), m_NearPlane(nearPlane), m_FarPlane(farPlane),
-        m_Position(glm::vec3(0.0f, 100.0f, 0.0f)),
-        m_WorldUp(glm::vec3(0.0f, 1.0f, 0.0f)),
-        m_Yaw(0.0f), m_Pitch(-60.0f), m_MouseSensitivity(0.1f)
-    {
-        UpdateCameraVectors();
-        UpdateProjection();
-    }
+	void vkCamera::SetProjection(float fov, float aspect, float znear, float zfar)
+	{
+		glm::mat4 currentMatrix = mProjectionMatrix;
+		mFov = fov;
+		mNearPlane = znear;
+		mFarPlane = zfar;
+		mProjectionMatrix = glm::perspective(glm::radians(fov), aspect, znear, zfar);
+		if (mFlipY) {
+			mProjectionMatrix[1][1] *= -1.0f;
+		}
+	};
 
-    void vkCamera::SetPosition(const glm::vec3& position) {
-        m_Position = position;
-        UpdateView();
-    }
+	void vkCamera::UpdateAspectRatio(float aspect)
+	{
+		glm::mat4 currentMatrix = mProjectionMatrix;
+		mProjectionMatrix = glm::perspective(glm::radians(mFov), aspect, mNearPlane, mFarPlane);
+		if (mFlipY) {
+			mProjectionMatrix[1][1] *= -1.0f;
+		}
+	}
 
-    void vkCamera::SetOrientation(float yaw, float pitch) {
-        m_Yaw = yaw;
-        m_Pitch = pitch;
-        UpdateCameraVectors();
-    }
+	void vkCamera::Update(float deltaTime)
+	{
+		if (mMode == Mode::Flycam)
+		{
+			if (Moving())
+			{
+				glm::vec3 camFront;
+				camFront.x = -cos(glm::radians(mRotation.x)) * sin(glm::radians(mRotation.y));
+				camFront.y = sin(glm::radians(mRotation.x));
+				camFront.z = cos(glm::radians(mRotation.x)) * cos(glm::radians(mRotation.y));
 
-    void vkCamera::SetAspectRatio(float aspect) {
-        m_Aspect = aspect;
-        UpdateProjection();
-    }
+				mFront = glm::normalize(camFront);
+				mRight = glm::normalize(glm::cross(mFront, mWorldUp));
+				mUp = glm::normalize(glm::cross(mRight, mFront));
 
-    void vkCamera::UpdateCameraDelta(const glm::vec3& deltaPos, float deltaYaw, float deltaPitch)
-    {
-        m_Position += deltaPos;
-        m_Yaw += deltaYaw;
-        m_Pitch += deltaPitch;
-        if (m_Pitch > 89.0f)
-            m_Pitch = 89.0f;
-        if (m_Pitch < -89.0f)
-            m_Pitch = -89.0f;
-        UpdateCameraVectors();
-    }
+				float moveSpeed = deltaTime * mMovementSpeed;
 
-    void vkCamera::UpdateCamera(const glm::vec3& pos, float yaw, float pitch)
-    {
-        m_Position = pos;
-        m_Yaw = yaw;
-        m_Pitch = pitch;
-        UpdateCameraVectors();
-    }
+				if (mKeys.up)
+					mPosition += mFront * moveSpeed;
+				if (mKeys.down)
+					mPosition -= mFront * moveSpeed;
+				if (mKeys.left)
+					mPosition -= mRight * moveSpeed;
+				if (mKeys.right)
+					mPosition += mRight * moveSpeed;
+			}
+		}
+		UpdateViewMatrix();
+	}
 
-    void vkCamera::UpdateView() 
-    {
-        m_ViewMatrix = glm::lookAt(m_Position, m_Position + m_Front, m_Up);
-    }
+	void vkCamera::UpdateVectors()
+	{
+		glm::vec3 camFront;
+		camFront.x = -cos(glm::radians(mRotation.x)) * sin(glm::radians(mRotation.y));
+		camFront.y = sin(glm::radians(mRotation.x));
+		camFront.z = cos(glm::radians(mRotation.x)) * cos(glm::radians(mRotation.y));
 
-    void vkCamera::UpdateProjection() {
-        m_ProjectionMatrix = glm::perspective(glm::radians(m_Fov), m_Aspect, m_NearPlane, m_FarPlane);
-        // Flip Y axis for Vulkan's coordinate system
-        m_ProjectionMatrix[1][1] *= -1;
-    }
+		mFront = glm::normalize(camFront);
+		mRight = glm::normalize(glm::cross(mFront, mWorldUp));
+		mUp = glm::normalize(glm::cross(mRight, mFront));
+	}
+	void vkCamera::UpdateViewMatrix()
+	{
+		glm::mat4 currentMatrix = mViewMatrix;
 
-    void vkCamera::UpdateCameraVectors() {
-        glm::vec3 front;
-        front.x = cos(glm::radians(m_Yaw)) * cos(glm::radians(m_Pitch));
-        front.y = sin(glm::radians(m_Pitch));
-        front.z = sin(glm::radians(m_Yaw)) * cos(glm::radians(m_Pitch));
-        m_Front = glm::normalize(front);
-        m_Right = glm::normalize(glm::cross(m_Front, m_WorldUp));
-        m_Up = glm::normalize(glm::cross(m_Right, m_Front));
+		glm::mat4 rotM = glm::mat4(1.0f);
+		glm::mat4 transM;
 
-        UpdateView();
-    }
+		rotM = glm::rotate(rotM, glm::radians(mRotation.x * (mFlipY ? -1.0f : 1.0f)), glm::vec3(1.0f, 0.0f, 0.0f));
+		rotM = glm::rotate(rotM, glm::radians(mRotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+		rotM = glm::rotate(rotM, glm::radians(mRotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+
+		glm::vec3 translation = mPosition;
+		if (mFlipY) {
+			translation.y *= -1.0f;
+		}
+		transM = glm::translate(glm::mat4(1.0f), translation);
+
+		if (mMode == Mode::Flycam)
+		{
+			mViewMatrix = rotM * transM;
+		}
+		else
+		{
+			mViewMatrix = transM * rotM;
+		}
+	}
 }

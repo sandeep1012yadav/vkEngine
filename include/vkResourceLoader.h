@@ -19,7 +19,7 @@ namespace vk
 	{
 	public:
 		static vkResourceLoader* GetInstance();
-		void LoadGameObjectFromGLTF(const std::string fileName);
+		vkGameObject* LoadGameObjectFromGLTF(const std::string fileName);
 		~vkResourceLoader();
 
 	private:
@@ -29,9 +29,9 @@ namespace vk
 		vkResourceLoader(const vkEngine* pEngine);
 
 		//gltf loading functions
-		vkFrameObject* LoadGLTFNode(const tinygltf::Node& node, const tinygltf::Model& model,
-			std::vector<vkVertex>& vVertices, std::vector<uint32_t>& vIndices);
-		void LoadGLTFMaterails(const tinygltf::Model& model, std::map<uint32_t, uint32_t>& materialIdMap);
+		vkFrameObject* LoadGLTFNode(const tinygltf::Node& node, const tinygltf::Model& model, const std::map<uint32_t, uint32_t>& materialIdMap, 
+			vkFrameObject* pParentFrameObject, vkGameObject* pParentGameObject);
+		void LoadGLTFMaterials(const tinygltf::Model& model, const std::map<uint32_t, uint32_t>& textureIdMap, std::map<uint32_t, uint32_t>& materialIdMap);
 		void LoadGLTFTextures(const tinygltf::Model& model, std::map<uint32_t, uint32_t>& textureIdMap);
 
 		friend class vkEngine;

@@ -3,26 +3,6 @@
 
 namespace vk
 {
-	typedef struct _sceneUniformBufferObject
-	{
-		glm::mat4 viewMatrix;
-		glm::mat4 projMatrix;
-
-	}SceneUniformBufferObject;
-
-	typedef struct _frameUniformBufferObject
-	{
-		glm::mat4 worldMatrix;
-
-	}FrameUniformBufferObject;
-
-	typedef struct _VulkanBuffer
-	{
-		VkBuffer buffer;
-		VkDeviceMemory bufferMemory;
-
-	}VulkanBuffer;
-
 	class vkEngine;
 	class vkScene;
 	class vkPipelineManager;
@@ -31,19 +11,14 @@ namespace vk
 	class vkRenderer
 	{
 	public:
-		float RenderScene(const VkCommandBuffer& commandBuffer, float fTimeElapsed);
+		float RenderScene(const VkCommandBuffer& commandBuffer, float deltaTime);
 		~vkRenderer();
 
 	private:
 		vkRenderer(const vkEngine* pEngine, const vkPipelineManager* pPipelineManager);
-		bool CreateBuffers();
-		bool CreateDescriptorPool();
-		bool AllocateDescriptorSets();
-		bool LinkDescriptorSetsToResources();
 
-		void RenderFrame(const VkCommandBuffer& commandBuffer, vkFrameObject* pFrameObj, uint32_t& drawableFrameIndex);
-		void UpdateSceneUniformBuffers();
-		void UpdateFrameUniformBuffers(vkFrameObject* pFrameObj, uint32_t& drawableFrameIndex);
+		void RenderFrame(const VkCommandBuffer& commandBuffer, vkFrameObject* pFrameObj);
+		void UpdateScene(float deltaTime);
 
 		friend class vkEngine;
 
@@ -52,22 +27,8 @@ namespace vk
 		const vkDevice* m_pDevice;
 		vkScene* m_pMainScene;
 
-		VkDescriptorPool m_DescriptorPool;
-
-		SceneUniformBufferObject m_SceneUBO;
-		FrameUniformBufferObject m_FrameUBO;
-
-		uint32_t m_NbSceneBuffers;
-		VkDescriptorSet* m_SceneDescriptorSets;
-		VulkanBuffer* m_SceneBuffers;
-
-		uint32_t m_NbFrameBuffers;
-		VkDescriptorSet* m_FrameDescriptorSets;
-		VulkanBuffer* m_FrameBuffers;
-
-		VkPipelineLayout m_DefautPipelineLayout;
-		VkPipeline m_DefaultPipeline;
-
+		VkPipelineLayout m_PipelineLayout;
+		VkPipeline m_Pipeline;
 	};
 
 	

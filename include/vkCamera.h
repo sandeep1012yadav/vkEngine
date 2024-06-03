@@ -4,48 +4,130 @@
 
 namespace vk
 {
-    class vkCamera : public vkObject 
-    {
-    public:
-        vkCamera();
-        vkCamera(const std::string& name);
-        vkCamera(const std::string& name, float fov, float aspect, float nearPlane, float farPlane);
+	class vkCamera : public vkObject
+	{
+	private:
 
-        void SetPosition(const glm::vec3& position);
-        void SetOrientation(float yaw, float pitch);
-        void SetAspectRatio(float aspect);
-        void UpdateCameraDelta(const glm::vec3& deltaPos, float deltaYaw, float deltaPitch);
-        void UpdateCamera(const glm::vec3& pos, float yaw, float pitch);
+		float mFov;
+		float mAspect;
+		float mNearPlane;
+		float mFarPlane;
 
-        void SetMouseSensitivity(float sensitivity) { m_MouseSensitivity = sensitivity; }
-        float GetMouseSensitivity() const { return m_MouseSensitivity; }
-        const glm::mat4& GetViewMatrix() const { return m_ViewMatrix; }
-        const glm::mat4& GetProjectionMatrix() const { return m_ProjectionMatrix; }
+		glm::mat4 mViewMatrix;
+		glm::mat4 mProjectionMatrix;
 
-    private:
-        void UpdateView();
-        void UpdateProjection();
-        void UpdateCameraVectors();
+		void UpdateVectors();
+		void UpdateViewMatrix();
+		
+	public:
+		enum class Mode {
+			Flycam,
+			Arcball
+		};
+		Mode mMode = Mode::Flycam;
 
-        glm::vec3 m_Position;
-        glm::vec3 m_Front;
-        glm::vec3 m_Up;
-        glm::vec3 m_Right;
-        glm::vec3 m_WorldUp;
 
-        float m_Yaw;
-        float m_Pitch;
+		vkCamera(const std::string& name);
+		vkCamera(const std::string& name, float fov, float aspect, float nearPlane, float farPlane);
 
-        float m_MouseSensitivity;
+		glm::vec3 mRotation = glm::vec3();
+		glm::vec3 mPosition = glm::vec3();
+		glm::vec4 mViewPos = glm::vec4();
 
-        float m_Fov;
-        float m_Aspect;
-        float m_NearPlane;
-        float m_FarPlane;
+		glm::vec3 mFront = glm::vec3();
+		glm::vec3 mUp = glm::vec3();
+		glm::vec3 mRight = glm::vec3();
+		glm::vec3 mWorldUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
-        glm::mat4 m_ViewMatrix;
-        glm::mat4 m_ProjectionMatrix;
+		float mRotationSpeed = 1.0f;
+		float mMovementSpeed = 1.0f;
 
-    };
+		//bool mUpdated = true;
+		bool mFlipY = true;
+
+		struct
+		{
+			bool left = false;
+			bool right = false;
+			bool up = false;
+			bool down = false;
+		} mKeys;
+
+		bool Moving()
+		{
+			return mKeys.left || mKeys.right || mKeys.up || mKeys.down;
+		}
+
+		float GetNearClip() { 
+			return mNearPlane; }
+
+		float GetFarClip() {
+			return mFarPlane;
+		}
+
+		const glm::mat4& GetProjectionMatrix()
+		{
+			return mProjectionMatrix;
+		}
+
+		const glm::mat4& GetViewMatrix()
+		{
+			return mViewMatrix;
+		}
+
+		void SetMode(Mode mode)
+		{
+			mMode = mode;
+		}
+
+		Mode GetMode()
+		{
+			return mMode;
+		}
+
+		void SetPosition(glm::vec3 position)
+		{
+			mPosition = position;
+			UpdateViewMatrix();
+		}
+
+		void SetRotation(glm::vec3 rotation)
+		{
+			mRotation = rotation;
+			UpdateViewMatrix();
+		}
+
+		void Rotate(glm::vec3 delta)
+		{
+			mRotation += delta;
+			UpdateViewMatrix();
+		}
+
+		void SetTranslation(glm::vec3 translation)
+		{
+			mPosition = translation;
+			UpdateViewMatrix();
+		};
+
+		void Translate(glm::vec3 delta)
+		{
+			mPosition += delta;
+			UpdateViewMatrix();
+		}
+
+		void SetRotationSpeed(float rotationSpeed)
+		{
+			mRotationSpeed = rotationSpeed;
+		}
+
+		void SetMovementSpeed(float movementSpeed)
+		{
+			mMovementSpeed = movementSpeed;
+		}
+
+		void Update(float deltaTime);
+		void SetProjection(float fov, float aspect, float znear, float zfar);
+		void UpdateAspectRatio(float aspect);
+	};
 
 }

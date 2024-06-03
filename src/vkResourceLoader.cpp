@@ -46,8 +46,8 @@ namespace vk
 
 	}
 
-	vkFrameObject* vkResourceLoader::LoadGLTFNode(const tinygltf::Node& node, const tinygltf::Model& model,
-		std::vector<vkVertex>& vVertices, std::vector<uint32_t>& vIndices)
+	vkFrameObject* vkResourceLoader::LoadGLTFNode(const tinygltf::Node& node, const tinygltf::Model& model, const std::map<uint32_t, uint32_t>& materialIdMap,
+		vkFrameObject* pParentFrameObject, vkGameObject* pParentGameObject)
 	{
 		vkFrameObject* pFrameObject = new vkFrameObject(node.name);
 		// Get the local node matrix
@@ -66,16 +66,25 @@ namespace vk
 			pFrameObject->mLocalTransformation = glm::make_mat4x4(node.matrix.data());
 		};
 
+		pFrameObject->m_pParentGameObject = pParentGameObject;
+		pFrameObject->m_pParent = pParentFrameObject;
+
+		
+
 		// Load node's children
 		uint32_t nbNodeChildren = static_cast<uint32_t>(node.children.size());
+		pFrameObject->mNbChildren = nbNodeChildren;
 		if (nbNodeChildren > 0)
 		{
 			pFrameObject->m_pChildren = new vkFrameObject*[nbNodeChildren];
 			for (size_t i = 0; i < nbNodeChildren; i++)
 			{
-				pFrameObject->m_pChildren[i] = LoadGLTFNode(model.nodes[node.children[i]], model, vVertices, vIndices);
+				pFrameObject->m_pChildren[i] = LoadGLTFNode(model.nodes[node.children[i]], model, materialIdMap, pFrameObject, pParentGameObject);
 			}
 		}
+
+		std::vector<uint32_t>& vIndices = pParentGameObject->m_vIndices;
+		std::vector<vkVertex>& vVertices = pParentGameObject->m_vVertices;
 
 		if (node.mesh > -1)
 		{
@@ -167,69 +176,136 @@ namespace vk
 				vkPrimitive primitive{};
 				primitive.mStartIndex = firstIndex;
 				primitive.mNbIndices = indexCount;
-
-
-
-				primitive.mMaterialIndex = glTFPrimitive.material;
-
+				primitive.mMaterialIndex = glTFPrimitive.material >= 0 ? materialIdMap.at(glTFPrimitive.material) : -1;
 				pMesh->AddPrimitive(primitive);
+
+				// incrementing sampler count
+				pParentGameObject->mNbMaterialDescriptorSets++;
 			}
 			pFrameObject->AssignMesh(pMesh);
 		}
-
 		return pFrameObject;
 	}
 
-	void vkResourceLoader::LoadGameObjectFromGLTF(const std::string fileName)
+	void vkResourceLoader::LoadGLTFMaterials(const tinygltf::Model& model, const std::map<uint32_t, uint32_t>& textureIdMap, std::map<uint32_t, uint32_t>& materialIdMap)
 	{
-		tinygltf::Model gltfModel;
-		tinygltf::TinyGLTF gltfContext;
-		std::string error, warning;
+		// Lambda function to convert tinygltf::Value::Array to glm::vec4
+		auto ConvertToVec4 = [](const tinygltf::Value::Array& array) -> glm::vec4 {
+			return glm::vec4(
+				static_cast<float>(array[0].Get<double>()),
+				static_cast<float>(array[1].Get<double>()),
+				static_cast<float>(array[2].Get<double>()),
+				static_cast<float>(array[3].Get<double>())
+			);
+		};
 
+		auto ConvertToVec3 = [](const tinygltf::Value::Array& array) -> glm::vec3 {
+			return glm::vec3(
+				static_cast<float>(array[0].Get<double>()),
+				static_cast<float>(array[1].Get<double>()),
+				static_cast<float>(array[2].Get<double>())
+			);
+		};
 
-		bool fileLoaded = gltfContext.LoadASCIIFromFile(&gltfModel, &error, &warning, fileName);
-
-		std::map<uint32_t, uint32_t> idMap;
-		LoadGLTFMaterails(gltfModel, idMap);
-
-		if (fileLoaded)
-		{
-			const tinygltf::Scene& scene = gltfModel.scenes[0];
-			for (size_t i = 0; i < scene.nodes.size(); i++) 
-			{
-				const tinygltf::Node node = gltfModel.nodes[scene.nodes[i]];
-				
-				vkGameObject* pGameObj = new vkGameObject();
-				
-				pGameObj->m_pFrameObject = LoadGLTFNode(node, gltfModel, pGameObj->m_vVertices, pGameObj->m_vIndices);
-			}
-		}
-
-		
-	}
-
-	void vkResourceLoader::LoadGLTFMaterails(const tinygltf::Model& model, std::map<uint32_t, uint32_t>& materialIdMap)
-	{
 		//loading materials
-		for (size_t i = 0; i < model.materials.size(); i++) 
+		for (uint32_t i = 0; i < model.materials.size(); i++) 
 		{
 			tinygltf::Material glTFMaterial = model.materials[i];
 
 			vkMaterial* pMaterial = new vkMaterial(m_pEngine, glTFMaterial.name);
+
 			// Get the base color factor
-			//if (glTFMaterial.values.find("baseColorFactor") != glTFMaterial.values.end()) {
-			//	materials[i].baseColorFactor = glm::make_vec4(glTFMaterial.values["baseColorFactor"].ColorFactor().data());
-			//}
-			//// Get base color texture index
-			//if (glTFMaterial.values.find("baseColorTexture") != glTFMaterial.values.end()) {
-			//	materials[i].baseColorTextureIndex = glTFMaterial.values["baseColorTexture"].TextureIndex();
-			//}
+			if (glTFMaterial.values.find("baseColorFactor") != glTFMaterial.values.end()) {
+				pMaterial->mDiffuseFactor = glm::make_vec4(glTFMaterial.values["baseColorFactor"].ColorFactor().data());
+			}
+
+			// Get base color texture index
+			if (glTFMaterial.values.find("baseColorTexture") != glTFMaterial.values.end()) 
+			{
+				int gltfTextureIndex = glTFMaterial.values["baseColorTexture"].TextureIndex();
+				if (gltfTextureIndex >= 0 && gltfTextureIndex < model.textures.size())
+				{
+					const tinygltf::Texture& texture = model.textures[gltfTextureIndex];
+					int gltfImageIndex = texture.source;
+
+					if (gltfImageIndex >= 0 && gltfImageIndex < model.images.size())
+					{
+						pMaterial->mDiffuseTextureIndex = textureIdMap.at(gltfImageIndex);
+					}
+				}
+			}
+
+			// Check for extensions
+			auto extIt = glTFMaterial.extensions.find("KHR_materials_pbrSpecularGlossiness");
+			if (extIt != glTFMaterial.extensions.end()) 
+			{
+				const auto& extension = extIt->second;
+				// Access the extension data
+				if (extension.Has("diffuseTexture")) 
+				{
+					const auto& diffuseTexture = extension.Get("diffuseTexture");
+					if (diffuseTexture.Has("index")) 
+					{
+						int diffuseTextureIndex = diffuseTexture.Get("index").Get<int>();
+						if (diffuseTextureIndex >= 0 && diffuseTextureIndex < model.textures.size()) 
+						{
+							const tinygltf::Texture& texture = model.textures[diffuseTextureIndex];
+							int imageIndex = texture.source;
+							if (imageIndex >= 0 && imageIndex < model.images.size()) 
+							{
+								pMaterial->mDiffuseTextureIndex = textureIdMap.at(imageIndex);
+							}
+						}
+					}
+				}
+				if (extension.Has("diffuseFactor"))
+				{
+					const auto& diffuseFactor = extension.Get("diffuseFactor");
+					pMaterial->mDiffuseFactor = ConvertToVec4(diffuseFactor.Get<tinygltf::Value::Array>());
+				}
+
+				if (extension.Has("specularGlossinessTexture"))
+				{
+					const auto& specularGlossinessTexture = extension.Get("specularGlossinessTexture");
+					if (specularGlossinessTexture.Has("index"))
+					{
+						int specularTextureIndex = specularGlossinessTexture.Get("index").Get<int>();
+						if (specularTextureIndex >= 0 && specularTextureIndex < model.textures.size())
+						{
+							const tinygltf::Texture& texture = model.textures[specularTextureIndex];
+							int imageIndex = texture.source;
+							if (imageIndex >= 0 && imageIndex < model.images.size())
+							{
+								pMaterial->mSpecularTextureIndex = textureIdMap.at(imageIndex);
+							}
+						}
+					}
+				}
+				if (extension.Has("specularFactor"))
+				{
+					const auto& specularFactor = extension.Get("specularFactor");
+					pMaterial->mSpecularFactor = ConvertToVec3(specularFactor.Get<tinygltf::Value::Array>());
+				}
+				if (extension.Has("glossinessFactor"))
+				{
+					pMaterial->mGlossinessFactor = (float)extension.Get("glossinessFactor").Get<double>();
+				}
+			}
+
+			pMaterial->mNormalTextureIndex = glTFMaterial.normalTexture.index >= 0 ? textureIdMap.at(glTFMaterial.normalTexture.index) : -1;
+			pMaterial->mOcculsionTextureIndex = glTFMaterial.occlusionTexture.index >= 0 ? textureIdMap.at(glTFMaterial.occlusionTexture.index) : -1;
+			pMaterial->mEmissiveTextureIndex = glTFMaterial.emissiveTexture.index >= 0 ? textureIdMap.at(glTFMaterial.emissiveTexture.index) : -1;
+			pMaterial->mEmissiveFactor = glm::vec3((float)glTFMaterial.emissiveFactor[0], (float)glTFMaterial.emissiveFactor[1], (float)glTFMaterial.emissiveFactor[2]);
+			pMaterial->bDoubleSided = glTFMaterial.doubleSided;
+
+			uint32_t matId = vkResourcePool::GetInstance()->AddMaterial(pMaterial);
+			materialIdMap[i] = matId;
 		}
 	}
 	void vkResourceLoader::LoadGLTFTextures(const tinygltf::Model& model, std::map<uint32_t, uint32_t>& textureIdMap)
 	{
 		// loading textures
-		for (size_t i = 0; i < model.images.size(); i++)
+		for (uint32_t i = 0; i < model.images.size(); i++)
 		{
 			const tinygltf::Image& gltfImage = model.images[i];
 
@@ -262,7 +338,6 @@ namespace vk
 				bufferSize = gltfImage.image.size();
 			}
 			// Load texture from image buffer
-			//images[i].texture.fromBuffer(buffer, bufferSize, VK_FORMAT_R8G8B8A8_UNORM, glTFImage.width, glTFImage.height, vulkanDevice, copyQueue);
 			pTexture->LoadFromBuffer(buffer, bufferSize, VK_FORMAT_R8G8B8A8_UNORM, gltfImage.width, gltfImage.height);
 			if (deleteBuffer) {
 				delete[] buffer;
@@ -272,5 +347,36 @@ namespace vk
 
 			textureIdMap[i] = textureId;
 		}
+	}
+
+	vkGameObject* vkResourceLoader::LoadGameObjectFromGLTF(const std::string fileName)
+	{
+		tinygltf::Model gltfModel;
+		tinygltf::TinyGLTF gltfContext;
+		std::string error, warning;
+
+
+		bool fileLoaded = gltfContext.LoadASCIIFromFile(&gltfModel, &error, &warning, fileName);
+
+		std::map<uint32_t, uint32_t> textureIdMap;
+		LoadGLTFTextures(gltfModel, textureIdMap);
+		std::map<uint32_t, uint32_t> materialIdMap;
+		LoadGLTFMaterials(gltfModel, textureIdMap, materialIdMap);
+
+		if (fileLoaded)
+		{
+			const tinygltf::Scene& scene = gltfModel.scenes[0];
+			for (size_t i = 0; i < scene.nodes.size(); i++)
+			{
+				const tinygltf::Node node = gltfModel.nodes[scene.nodes[i]];
+
+				vkGameObject* pGameObj = new vkGameObject();
+
+				pGameObj->m_pFrameObject = LoadGLTFNode(node, gltfModel, materialIdMap, nullptr, pGameObj);
+
+				return pGameObj;
+			}
+		}
+		return nullptr;
 	}
 }
