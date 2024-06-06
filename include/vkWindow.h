@@ -44,5 +44,6 @@ namespace vk
 		bool m_IsMouseDragging;
 		//double m_LastX, m_LastY;
 		glm::vec2 mCurrentPos, mLastPos;
+		float mScrollSpeed = 1.0f;
 	};
 }

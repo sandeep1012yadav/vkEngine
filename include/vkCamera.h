@@ -24,7 +24,7 @@ namespace vk
 			Flycam,
 			Arcball
 		};
-		Mode mMode = Mode::Flycam;
+		Mode mMode = Mode::Arcball;
 
 
 		vkCamera(const std::string& name);
@@ -51,11 +51,13 @@ namespace vk
 			bool right = false;
 			bool up = false;
 			bool down = false;
+			bool page_down = false;
+			bool page_up = false;
 		} mKeys;
 
 		bool Moving()
 		{
-			return mKeys.left || mKeys.right || mKeys.up || mKeys.down;
+			return mKeys.left || mKeys.right || mKeys.up || mKeys.down || mKeys.page_up || mKeys.page_down;
 		}
 
 		float GetNearClip() { 

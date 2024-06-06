@@ -2,7 +2,7 @@
 
 namespace vk
 {
-	vkCamera::vkCamera(const std::string& name) : vkObject(name, ObjectType::OT_Camera), mFov(60.0f), mAspect(16.0f / 9.0f), mNearPlane(0.3f), mFarPlane(10000.0f)
+	vkCamera::vkCamera(const std::string& name) : vkObject(name, ObjectType::OT_Camera), mFov(60.0f), mAspect(16.0f / 9.0f), mNearPlane(0.1f), mFarPlane(10000.0f)
 	{
 		SetPosition(glm::vec3(0, 0, -1.0f));
 		UpdateVectors();
@@ -65,6 +65,10 @@ namespace vk
 					mPosition -= mRight * moveSpeed;
 				if (mKeys.right)
 					mPosition += mRight * moveSpeed;
+				if (mKeys.page_up)
+					mPosition += mWorldUp * moveSpeed;
+				if (mKeys.page_down)
+					mPosition -= mWorldUp * moveSpeed;
 			}
 		}
 		UpdateViewMatrix();

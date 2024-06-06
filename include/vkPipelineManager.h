@@ -6,7 +6,6 @@ namespace vk
 {
 	enum class ePipeline
 	{
-		PL_DEFAULT,
 		PL_STANDARD
 	};
 

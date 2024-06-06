@@ -124,20 +124,30 @@ namespace vk
 		float fSpeed = 0.1f;
 		vkCamera* pCamera = m_pEngine->GetMainScene()->GetMainCamera();
 
-		if (mods == GLFW_KEY_DOWN)
-		{
-
-		}
 		switch (key)
 		{
 			case GLFW_KEY_PAGE_UP:
 			{
-				//pCamera->UpdateCameraDelta(glm::vec3(0.0f, 1.0f, 0.0f) * fSpeed, 0.0f, 0.0f);
+				if (action == GLFW_PRESS)
+				{
+					pCamera->mKeys.page_up = true;
+				}
+				else if (action == GLFW_RELEASE)
+				{
+					pCamera->mKeys.page_up = false;
+				}
 				break;
 			}
 			case GLFW_KEY_PAGE_DOWN:
 			{
-				//pCamera->UpdateCameraDelta(glm::vec3(0.0f, -1.0f, 0.0f) * fSpeed, 0.0f, 0.0f);
+				if (action == GLFW_PRESS)
+				{
+					pCamera->mKeys.page_down = true;
+				}
+				else if (action == GLFW_RELEASE)
+				{
+					pCamera->mKeys.page_down = false;
+				}
 				break;
 			}
 			case GLFW_KEY_LEFT:
@@ -188,6 +198,18 @@ namespace vk
 				}
 				break;
 			}
+			case GLFW_KEY_LEFT_SHIFT:
+			{
+				if (action == GLFW_PRESS)
+				{
+					mScrollSpeed = 0.2f;
+				}
+				else if (action == GLFW_RELEASE)
+				{
+					mScrollSpeed = 1.0f;
+				}
+				break;
+			}
 		}
 
 		m_pEngine->KeyCallback(key, scancode, action, mods);
@@ -202,7 +224,7 @@ namespace vk
 	void vkWindow::ScrollCallback(double xOffset, double yOffset)
 	{
 		vkCamera* pCamera = m_pEngine->GetMainScene()->GetMainCamera();
-		pCamera->Translate(pCamera->mFront * (float)yOffset/2.0f);
+		pCamera->Translate(pCamera->mFront * (float)yOffset * mScrollSpeed /2.0f);
 	}
 
 

@@ -14,8 +14,7 @@ int WinMain()
 
 	//vk::vkGameObject* pGameObject = pEngine->CreateQuad();
 	
-	//vk::vkGameObject* pGameObject = vk::vkResourceLoader::GetInstance()->LoadGameObjectFromGLTF("C:\\MyWorkspace\\VulkanEngine\\SampleData\\adamHead\\adamHead.gltf");
-	vk::vkGameObject* pGameObject = vk::vkResourceLoader::GetInstance()->LoadGameObjectFromGLTF("C:\\MyWorkspace\\VulkanEngine\\SampleData\\FlightHelmet\\FlightHelmet.gltf");
+	vk::vkGameObject* pGameObject = vk::vkResourceLoader::GetInstance()->LoadGameObjectFromGLTF("./sample_data/FlightHelmet/FlightHelmet.gltf");
 	
 	pScene->AddGameObject(pGameObject);
 	pEngine->AddScene(pScene, true);

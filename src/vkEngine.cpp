@@ -416,7 +416,7 @@ namespace vk
 		
 		pMesh = new vkMesh("QuadMesh");
 		
-		vkPrimitive primitive = { 0, 6, matIndex };
+		vkPrimitive primitive = { 0, 6, static_cast<int32_t>(matIndex) };
 		pMesh->m_vPrimitives.push_back(primitive);
 
 		return pGameObject;

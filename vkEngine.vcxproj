@@ -204,14 +204,11 @@ xcopy "$(ProjectDir)resources" "$(TargetDir)resources" /E /I /Y</Command>
     <ClInclude Include="include\vkTexture.h" />
     <ClInclude Include="include\vkTriangle.h" />
     <ClInclude Include="include\vkWindow.h" />
-    <ClInclude Include="resources\shaders\scene_global.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="resources\pipelines\pipelines.json" />
     <None Include="resources\shaders\standard\standard.frag" />
     <None Include="resources\shaders\standard\standard.vert" />
-    <None Include="resources\shaders\triangle\default.frag" />
-    <None Include="resources\shaders\triangle\default.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
