@@ -19,6 +19,18 @@
 
 namespace vk
 {
+
+	struct BufferDescriptorSetResource
+	{
+		VkDescriptorBufferInfo  bufferInfo = { VK_NULL_HANDLE , 0, 0 };
+		VkDeviceMemory		    bufferMemory = VK_NULL_HANDLE;
+	};
+
+	struct ImageDescriptorSetResource
+	{
+		VkDescriptorImageInfo  imageInfo = { VK_NULL_HANDLE, VK_NULL_HANDLE, VK_IMAGE_LAYOUT_UNDEFINED };
+		VkDeviceMemory         imageMemory = VK_NULL_HANDLE;
+	};
 	
 	typedef struct _DepthStencilBuffer 
 	{

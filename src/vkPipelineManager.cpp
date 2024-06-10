@@ -107,7 +107,7 @@ namespace vk
 			}
 
 			{
-				std::array<VkDescriptorSetLayoutBinding, 2> descriptorSetLayoutBindings{};
+				std::array<VkDescriptorSetLayoutBinding, 3> descriptorSetLayoutBindings{};
 				descriptorSetLayoutBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 				descriptorSetLayoutBindings[0].binding = 0;
 				descriptorSetLayoutBindings[0].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
@@ -117,6 +117,11 @@ namespace vk
 				descriptorSetLayoutBindings[1].binding = 1;
 				descriptorSetLayoutBindings[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 				descriptorSetLayoutBindings[1].descriptorCount = 1;
+
+				descriptorSetLayoutBindings[2].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+				descriptorSetLayoutBindings[2].binding = 2;
+				descriptorSetLayoutBindings[2].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+				descriptorSetLayoutBindings[2].descriptorCount = 1;
 
 				VkDescriptorSetLayoutCreateInfo descriptorLayoutCI{};
 				descriptorLayoutCI.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;

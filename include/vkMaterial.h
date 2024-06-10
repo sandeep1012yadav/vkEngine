@@ -14,10 +14,8 @@ namespace vk
 
 	struct BufferImageDescriptorSetResources
 	{
-		VkDescriptorBufferInfo bufferInfo = { VK_NULL_HANDLE, 0, 0 };
-		VkDeviceMemory		   bufferMemory = VK_NULL_HANDLE;
-		VkDescriptorImageInfo  imageInfo = { VK_NULL_HANDLE, VK_NULL_HANDLE, VK_IMAGE_LAYOUT_UNDEFINED };
-		VkDeviceMemory         imageMemory = VK_NULL_HANDLE;
+		BufferDescriptorSetResource bufferResource;
+		std::array<ImageDescriptorSetResource, 2> imageResource;
 	};
 
 	class vkEngine;
@@ -48,6 +46,7 @@ namespace vk
 
 		MaterialUniformBufferObject mMaterialUBO;
 		VkDescriptorSet m_MaterialDescriptorSet;
+		
 		BufferImageDescriptorSetResources mMaterialDescriptorSetResources;
 
 		void UpdateMaterialUniformBufferObject();

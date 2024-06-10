@@ -12,25 +12,21 @@ Supported instance level extension properties :
 	VK_KHR_get_surface_capabilities2
 	VK_KHR_device_group_creation
 	VK_EXT_swapchain_colorspace
-	VK_KHR_display
-	VK_KHR_get_display_properties2
-	VK_KHR_surface_protected_capabilities
-	VK_EXT_debug_report
 	VK_EXT_debug_utils
-	VK_EXT_direct_mode_display
-	VK_NV_external_memory_capabilities
+	VK_EXT_debug_report
+	VK_KHR_portability_enumeration
+	VK_LUNARG_direct_driver_loading
 Picking physical device ...   
-Queue Families Count : 3
-Queue Family with index : "0" has queues count : 16
+Queue Families Count : 2
+Queue Family with index : "0" has queues count : 1
 >>>>>>>>>>>>>>>>>>>>>This queue is graphics queue
 >>>>>>>>>>>>>>>>>>>>>This queue is present queue
 Queue Family with index : "1" has queues count : 2
-Queue Family with index : "2" has queues count : 8
 Physical device is capable of creating graphics and presenting Queues...
 ************Started creating swapchain***********************
 Swap chain device extension is supported on the device...
 minImageCount in surface capabilities : 2
-maxImageCount in surface capabilities : 8
+maxImageCount in surface capabilities : 64
 created swapchain images : 3
 Swap chain created successfully...
 

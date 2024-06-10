@@ -128,7 +128,9 @@
     </PreBuildEvent>
     <PostBuildEvent>
       <Command>mkdir "$(TargetDir)resources"
-xcopy "$(ProjectDir)resources" "$(TargetDir)resources" /E /I /Y</Command>
+xcopy "$(ProjectDir)resources" "$(TargetDir)resources" /E /I /Y
+mkdir "$(TargetDir)sample_data"
+xcopy "$(ProjectDir)sample_data" "$(TargetDir)sample_data" /E /I /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -139,7 +141,7 @@ xcopy "$(ProjectDir)resources" "$(TargetDir)resources" /E /I /Y</Command>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>.\thirdpartylibraries\glfw-3.3.8.bin.WIN64\include;.\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\thirdpartylibraries\glfw-3.3.8.bin.WIN64\include;.\thirdpartylibraries\tinygltf;.\thirdpartylibraries\stb;.\thirdpartylibraries\json;.\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -152,7 +154,9 @@ xcopy "$(ProjectDir)resources" "$(TargetDir)resources" /E /I /Y</Command>
     </Link>
     <PostBuildEvent>
       <Command>mkdir "$(TargetDir)resources"
-xcopy "$(ProjectDir)resources" "$(TargetDir)resources" /E /I /Y</Command>
+xcopy "$(ProjectDir)resources" "$(TargetDir)resources" /E /I /Y
+mkdir "$(TargetDir)sample_data"
+xcopy "$(ProjectDir)sample_data" "$(TargetDir)sample_data" /E /I /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

@@ -23,7 +23,7 @@ layout (location = 0) out vec3 outNormal;
 layout (location = 1) out vec3 outColor;
 layout (location = 2) out vec2 outUV;
 layout (location = 3) out vec3 outLightDir;
-layout (location = 4) out vec3 outCameraPos;
+layout (location = 4) out vec3 outViewDir;
 
 
 void main() 
@@ -33,5 +33,5 @@ void main()
 	outColor = inColor;
 	outUV = inUV;
 	outLightDir = uboScene.lightDir;
-	outCameraPos = uboScene.cameraPos;
+	outViewDir = uboScene.cameraPos - inPos.xyz;
 }

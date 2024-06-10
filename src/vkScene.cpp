@@ -93,7 +93,7 @@ namespace vk
 		bool bStatus = true;
 
 		uint32_t nbUniformBuffers = 1 + m_NbMaterialDescriptorSets;
-		uint32_t nbCombinedImageSamplers = m_NbMaterialDescriptorSets;
+		uint32_t nbCombinedImageSamplers = 2 * m_NbMaterialDescriptorSets;
 
 		std::vector<VkDescriptorPoolSize> poolSizes = {
 			{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, nbUniformBuffers },
@@ -129,21 +129,27 @@ namespace vk
 						BufferImageDescriptorSetResources& descriptorSetResources = pMaterial->mMaterialDescriptorSetResources;
 						VkDeviceSize bufferSize = static_cast<VkDeviceSize>(sizeof(MaterialUniformBufferObject));
 						vkEngine::GetInstance()->GetDevice()->CreateBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-							VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, descriptorSetResources.bufferInfo.buffer, descriptorSetResources.bufferMemory);
+							VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, descriptorSetResources.bufferResource.bufferInfo.buffer, descriptorSetResources.bufferResource.bufferMemory);
 
-						descriptorSetResources.bufferInfo.offset = 0;
-						descriptorSetResources.bufferInfo.range = sizeof(MaterialUniformBufferObject);
+						descriptorSetResources.bufferResource.bufferInfo.offset = 0;
+						descriptorSetResources.bufferResource.bufferInfo.range = sizeof(MaterialUniformBufferObject);
 						if (pMaterial->mDiffuseTextureIndex >= 0)
 						{
 							vkTexture* pTexture = vkResourcePool::GetInstance()->GetTexture(pMaterial->mDiffuseTextureIndex);
-							descriptorSetResources.imageInfo = pTexture->GetDescriptorImageInfo();
-							descriptorSetResources.imageMemory = pTexture->GetDeviceMemory();
+							descriptorSetResources.imageResource[0].imageInfo = pTexture->GetDescriptorImageInfo();
+							descriptorSetResources.imageResource[0].imageMemory = pTexture->GetDeviceMemory();
+						}
+						if (pMaterial->mNormalTextureIndex >= 0)
+						{
+							vkTexture* pTexture = vkResourcePool::GetInstance()->GetTexture(pMaterial->mNormalTextureIndex);
+							descriptorSetResources.imageResource[1].imageInfo = pTexture->GetDescriptorImageInfo();
+							descriptorSetResources.imageResource[1].imageMemory = pTexture->GetDeviceMemory();
 						}
 					}
 					//// updating material UBO ////////////////////////////////////
 					{
 						pMaterial->UpdateMaterialUniformBufferObject();
-						vk::tools::UpdateUniformBuffer(m_pDevice->GetLogicalDevice(), pMaterial->mMaterialDescriptorSetResources.bufferMemory,
+						vk::tools::UpdateUniformBuffer(m_pDevice->GetLogicalDevice(), pMaterial->mMaterialDescriptorSetResources.bufferResource.bufferMemory,
 							&pMaterial->mMaterialUBO, sizeof(MaterialUniformBufferObject));
 					}
 					////allocate descriptor set from pool //////////////////////////////////
@@ -165,7 +171,7 @@ namespace vk
 						bufferDescriptorWrite.dstArrayElement = 0;
 						bufferDescriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 						bufferDescriptorWrite.descriptorCount = 1;
-						bufferDescriptorWrite.pBufferInfo = &pMaterial->mMaterialDescriptorSetResources.bufferInfo;
+						bufferDescriptorWrite.pBufferInfo = &pMaterial->mMaterialDescriptorSetResources.bufferResource.bufferInfo;
 						descriptorWrites.push_back(bufferDescriptorWrite);
 
 						if (pMaterial->mDiffuseTextureIndex >= 0)
@@ -177,7 +183,20 @@ namespace vk
 							imageDescriptorWrite.dstArrayElement = 0;
 							imageDescriptorWrite.descriptorCount = 1;
 							imageDescriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-							imageDescriptorWrite.pImageInfo = &pMaterial->mMaterialDescriptorSetResources.imageInfo;
+							imageDescriptorWrite.pImageInfo = &pMaterial->mMaterialDescriptorSetResources.imageResource[0].imageInfo;
+							descriptorWrites.push_back(imageDescriptorWrite);
+						}
+
+						if (pMaterial->mNormalTextureIndex >= 0)
+						{
+							VkWriteDescriptorSet imageDescriptorWrite = {};
+							imageDescriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+							imageDescriptorWrite.dstSet = pMaterial->m_MaterialDescriptorSet;
+							imageDescriptorWrite.dstBinding = 2; // Binding number for the combined image sampler
+							imageDescriptorWrite.dstArrayElement = 0;
+							imageDescriptorWrite.descriptorCount = 1;
+							imageDescriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+							imageDescriptorWrite.pImageInfo = &pMaterial->mMaterialDescriptorSetResources.imageResource[1].imageInfo;
 							descriptorWrites.push_back(imageDescriptorWrite);
 						}
 						vkUpdateDescriptorSets(m_pDevice->GetLogicalDevice(), static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
@@ -288,6 +307,8 @@ namespace vk
 		{
 			m_SceneUBO.projMatrix = m_pMainCamera->GetProjectionMatrix();
 			m_SceneUBO.viewMatrix = m_pMainCamera->GetViewMatrix();
+			m_SceneUBO.lightDir = { 0.0f, -1.0f, 0.0f };
+			m_SceneUBO.cameraPos = m_pMainCamera->mPosition;
 			vk::tools::UpdateUniformBuffer(m_pDevice->GetLogicalDevice(), m_SceneDescriptorSetResources.bufferMemory,
 				&m_SceneUBO, sizeof(SceneUniformBufferObject));
 		}

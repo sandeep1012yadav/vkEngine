@@ -8,7 +8,7 @@ namespace vk
 		mSpecularTextureIndex(-1), mSpecularFactor(glm::vec3(1.0f)),
 		mEmissiveTextureIndex(-1), mEmissiveFactor(glm::vec3(1.0f)),
 		mNormalTextureIndex(-1), mOcculsionTextureIndex(-1),
-		mAmbientColor(glm::vec4(1.0f)), mGlossinessFactor(0.5f), bDoubleSided(false)
+		mAmbientColor(glm::vec4(0.1f)), mGlossinessFactor(0.5f), bDoubleSided(false)
 	{
 		mMaterialUBO = {};
 		m_MaterialDescriptorSet = VK_NULL_HANDLE;

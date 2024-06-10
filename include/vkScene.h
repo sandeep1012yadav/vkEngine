@@ -3,16 +3,12 @@
 #include "vkObject.h"
 namespace vk
 {
-	struct BufferDescriptorSetResources
-	{
-		VkDescriptorBufferInfo  bufferInfo;
-		VkDeviceMemory		    bufferMemory;
-	};
-
 	struct SceneUniformBufferObject
 	{
 		glm::mat4 viewMatrix;
 		glm::mat4 projMatrix;
+		glm::vec3 lightDir;
+		glm::vec3 cameraPos;
 
 	};
 	class vkEngine;
@@ -65,7 +61,7 @@ namespace vk
 
 		SceneUniformBufferObject m_SceneUBO;
 		VkDescriptorSet m_SceneDescriptorSet;
-		BufferDescriptorSetResources m_SceneDescriptorSetResources;
+		BufferDescriptorSetResource m_SceneDescriptorSetResources;
 
 		uint32_t m_NbMaterialDescriptorSets;
 
